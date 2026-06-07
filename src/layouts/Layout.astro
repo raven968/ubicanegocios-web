@@ -1,0 +1,55 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'UbicaNegocios', description = 'Directorio de negocios locales' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-gray-50 text-gray-800 antialiased">
+    <header class="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <a href="/" class="flex items-center gap-2">
+          <img src="/logo.png" alt="UbicaNegocios" class="h-9 w-auto" />
+          <span class="text-lg font-bold tracking-tight">
+            Ubica<span class="text-emerald-600">Negocios</span>
+          </span>
+        </a>
+        <form action="/buscar" method="get" class="hidden sm:block">
+          <input
+            type="search"
+            name="q"
+            placeholder="Buscar negocios…"
+            class="w-64 rounded-full border border-gray-300 px-4 py-1.5 text-sm focus:border-emerald-500 focus:outline-none"
+          />
+        </form>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 py-8">
+      <slot />
+    </main>
+
+    <footer class="mt-16 border-t border-gray-200 bg-white">
+      <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-gray-500">
+        © {new Date().getFullYear()} UbicaNegocios · Directorio de negocios locales
+      </div>
+    </footer>
+  </body>
+</html>

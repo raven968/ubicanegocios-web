@@ -1,0 +1,109 @@
+---
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+---
+
+<form
+  id="review-form"
+  data-slug={slug}
+  data-api={apiUrl}
+  class="rounded-xl border border-gray-200 bg-white p-5"
+>
+  <h3 class="mb-3 font-semibold text-gray-900">Deja tu reseña</h3>
+
+  <div id="star-picker" class="mb-3 flex gap-1 text-2xl text-gray-300" role="radiogroup">
+    {[1, 2, 3, 4, 5].map((n) => (
+      <button type="button" class="star" data-value={n} aria-label={`${n} estrellas`}>
+        ★
+      </button>
+    ))}
+  </div>
+  <input type="hidden" name="rating" id="rating-input" value="0" />
+
+  <input
+    name="author_name"
+    placeholder="Tu nombre"
+    required
+    maxlength="80"
+    class="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+  />
+  <textarea
+    name="body"
+    placeholder="Cuéntanos tu experiencia…"
+    required
+    maxlength="2000"
+    rows="3"
+    class="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+  ></textarea>
+
+  <p id="review-msg" class="mb-3 hidden text-sm"></p>
+
+  <button
+    type="submit"
+    class="rounded-md bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+  >
+    Enviar reseña
+  </button>
+</form>
+
+<script>
+  const form = document.getElementById('review-form') as HTMLFormElement | null;
+  if (form) {
+    const ratingInput = document.getElementById('rating-input') as HTMLInputElement;
+    const stars = Array.from(document.querySelectorAll<HTMLElement>('#star-picker .star'));
+    const msg = document.getElementById('review-msg') as HTMLElement;
+
+    const paint = (value: number) => {
+      stars.forEach((s, i) => {
+        s.classList.toggle('text-amber-500', i < value);
+        s.classList.toggle('text-gray-300', i >= value);
+      });
+    };
+    stars.forEach((s) => {
+      s.addEventListener('click', () => {
+        const v = Number(s.dataset.value);
+        ratingInput.value = String(v);
+        paint(v);
+      });
+    });
+
+    const showMsg = (text: string, ok: boolean) => {
+      msg.textContent = text;
+      msg.className = `mb-3 text-sm ${ok ? 'text-emerald-600' : 'text-red-600'}`;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rating = Number(ratingInput.value);
+      if (rating < 1) {
+        showMsg('Selecciona una calificación.', false);
+        return;
+      }
+      const data = new FormData(form);
+      const payload = {
+        author_name: data.get('author_name'),
+        body: data.get('body'),
+        rating,
+      };
+      const res = await fetch(`${form.dataset.api}/businesses/${form.dataset.slug}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        showMsg('¡Gracias por tu reseña!', true);
+        form.reset();
+        paint(0);
+        ratingInput.value = '0';
+        setTimeout(() => location.reload(), 1200);
+      } else if (res.status === 429) {
+        showMsg('Has enviado demasiadas reseñas. Intenta más tarde.', false);
+      } else {
+        showMsg('No se pudo enviar la reseña. Revisa los campos.', false);
+      }
+    });
+  }
+</script>

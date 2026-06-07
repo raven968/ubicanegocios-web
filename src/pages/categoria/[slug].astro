@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BusinessCard from '../../components/BusinessCard.astro';
+import { getCategories, getBusinesses } from '../../lib/api';
+
+const { slug } = Astro.params;
+const categories = await getCategories();
+const category = categories.find((c) => c.slug === slug);
+
+if (!category) {
+  return Astro.redirect('/');
+}
+
+const sub = Astro.url.searchParams.get('sub') ?? '';
+const params: Record<string, string> = { category: category.slug };
+if (sub) params.subcategory = sub;
+
+const businesses = await getBusinesses(params).catch(() => []);
+---
+
+<Layout title={`${category.name} · UbicaNegocios`}>
+  <nav class="mb-2 text-sm text-gray-500">
+    <a href="/" class="hover:underline">Inicio</a> / <span>{category.name}</span>
+  </nav>
+  <h1 class="mb-4 text-2xl font-bold text-gray-900">{category.name}</h1>
+
+  {
+    category.subcategories.length > 0 && (
+      <div class="mb-6 flex flex-wrap gap-2">
+        <a
+          href={`/categoria/${category.slug}`}
+          class={`rounded-full border px-3 py-1 text-sm ${!sub ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-gray-300 bg-white text-gray-600'}`}
+        >
+          Todas
+        </a>
+        {category.subcategories.map((s) => (
+          <a
+            href={`/categoria/${category.slug}?sub=${s.slug}`}
+            class={`rounded-full border px-3 py-1 text-sm ${sub === s.slug ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-gray-300 bg-white text-gray-600'}`}
+          >
+            {s.name}
+          </a>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    businesses.length > 0 ? (
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {businesses.map((b) => (
+          <BusinessCard business={b} />
+        ))}
+      </div>
+    ) : (
+      <p class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        Aún no hay negocios en esta categoría.
+      </p>
+    )
+  }
+</Layout>

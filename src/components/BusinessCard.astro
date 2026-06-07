@@ -1,0 +1,55 @@
+---
+import Stars from './Stars.astro';
+import type { Business } from '../lib/api';
+
+interface Props {
+  business: Business;
+}
+const { business } = Astro.props;
+const cover = business.images?.[0]?.url;
+---
+
+<a
+  href={`/negocio/${business.slug}`}
+  class="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md"
+>
+  <div class="aspect-video w-full overflow-hidden bg-gray-100">
+    {
+      cover ? (
+        <img
+          src={cover}
+          alt={business.name}
+          class="h-full w-full object-cover transition group-hover:scale-105"
+        />
+      ) : (
+        <div class="flex h-full w-full items-center justify-center text-gray-300">
+          Sin imagen
+        </div>
+      )
+    }
+  </div>
+  <div class="flex flex-1 flex-col p-4">
+    <h3 class="font-semibold text-gray-900">{business.name}</h3>
+    {
+      business.description && (
+        <p class="mt-1 line-clamp-2 text-sm text-gray-500">{business.description}</p>
+      )
+    }
+    <div class="mt-3 flex items-center justify-between">
+      {
+        business.reviews_count > 0 ? (
+          <Stars rating={business.average_rating} count={business.reviews_count} />
+        ) : (
+          <span class="text-xs text-gray-400">Sin reseñas</span>
+        )
+      }
+      {
+        business.categories?.[0] && (
+          <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
+            {business.categories[0].name}
+          </span>
+        )
+      }
+    </div>
+  </div>
+</a>

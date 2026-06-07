@@ -1,0 +1,15 @@
+---
+interface Props {
+  rating: number;
+  count?: number;
+}
+const { rating, count } = Astro.props;
+const full = Math.round(rating);
+---
+
+<span class="inline-flex items-center gap-1 text-sm">
+  <span class="text-amber-500">
+    {'★'.repeat(full)}<span class="text-gray-300">{'★'.repeat(5 - full)}</span>
+  </span>
+  {count !== undefined && <span class="text-gray-500">({count})</span>}
+</span>

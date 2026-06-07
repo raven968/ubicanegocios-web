@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BusinessCard from '../components/BusinessCard.astro';
+import { getBusinesses } from '../lib/api';
+
+const q = Astro.url.searchParams.get('q')?.trim() ?? '';
+const businesses = q ? await getBusinesses({ search: q }).catch(() => []) : [];
+---
+
+<Layout title={q ? `Resultados para "${q}"` : 'Buscar'}>
+  <h1 class="mb-2 text-2xl font-bold text-gray-900">
+    {q ? `Resultados para “${q}”` : 'Buscar negocios'}
+  </h1>
+
+  <form action="/buscar" method="get" class="mb-6 flex max-w-md gap-2">
+    <input
+      type="search"
+      name="q"
+      value={q}
+      placeholder="Buscar negocios…"
+      class="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+    />
+    <button class="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+      Buscar
+    </button>
+  </form>
+
+  {
+    q && businesses.length === 0 && (
+      <p class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        No encontramos negocios para “{q}”.
+      </p>
+    )
+  }
+
+  {
+    businesses.length > 0 && (
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {businesses.map((b) => (
+          <BusinessCard business={b} />
+        ))}
+      </div>
+    )
+  }
+</Layout>

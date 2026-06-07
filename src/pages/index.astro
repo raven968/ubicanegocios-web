@@ -1,0 +1,75 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+import BusinessCard from '../components/BusinessCard.astro';
+import { getCategories, getBusinesses } from '../lib/api';
+
+const [categories, latest] = await Promise.all([
+  getCategories(),
+  getBusinesses().catch(() => []),
+]);
+---
+
+<Layout title="UbicaNegocios · Encuentra negocios locales">
+  <section class="mb-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-500 px-6 py-12 text-center text-white">
+    <h1 class="text-3xl font-bold sm:text-4xl">Encuentra negocios cerca de ti</h1>
+    <p class="mx-auto mt-2 max-w-xl text-emerald-50">
+      Explora por categoría o busca lo que necesitas en tu localidad.
+    </p>
+    <form
+      action="/buscar"
+      method="get"
+      class="mx-auto mt-6 flex max-w-xl items-stretch overflow-hidden rounded-full bg-white p-1 shadow-lg ring-1 ring-black/5"
+    >
+      <span class="flex items-center pl-4 text-gray-400">
+        <Icon name="lucide:search" class="h-5 w-5" />
+      </span>
+      <input
+        type="search"
+        name="q"
+        placeholder="¿Qué buscas? Ej. tacos, plomero…"
+        class="flex-1 bg-transparent px-3 py-2 text-gray-800 placeholder:text-gray-400 focus:outline-none"
+      />
+      <button class="rounded-full bg-gray-900 px-6 py-2.5 font-medium text-white hover:bg-gray-800">
+        Buscar
+      </button>
+    </form>
+  </section>
+
+  <section class="mb-12">
+    <h2 class="mb-4 text-xl font-bold text-gray-900">Categorías</h2>
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {
+        categories.map((cat) => (
+          <a
+            href={`/categoria/${cat.slug}`}
+            class="group relative flex flex-col items-center rounded-xl border border-gray-200 bg-white px-3 py-5 text-center transition hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md"
+          >
+            <span class="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition group-hover:bg-emerald-100">
+              <Icon name={cat.icon ?? 'lucide:map-pin'} class="h-6 w-6" />
+            </span>
+            <span class="text-sm font-medium leading-tight text-gray-800">{cat.name}</span>
+            {cat.businesses_count > 0 && (
+              <span class="absolute right-2 top-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                {cat.businesses_count}
+              </span>
+            )}
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    latest.length > 0 && (
+      <section>
+        <h2 class="mb-4 text-xl font-bold text-gray-900">Negocios recientes</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {latest.slice(0, 6).map((b) => (
+            <BusinessCard business={b} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</Layout>

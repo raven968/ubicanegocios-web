@@ -1,0 +1,163 @@
+---
+import type { BusinessImage } from '../lib/api';
+
+interface Props {
+  images: BusinessImage[];
+  name: string;
+}
+const { images, name } = Astro.props;
+const hasMany = images.length > 1;
+---
+
+{
+  images.length > 0 && (
+    <div class="gallery" data-count={images.length}>
+      {/* Main viewer */}
+      <div class="relative overflow-hidden rounded-xl bg-gray-100">
+        <button
+          type="button"
+          id="gallery-open"
+          class="block aspect-video w-full"
+          aria-label="Ampliar imagen"
+        >
+          <img
+            id="gallery-main"
+            src={images[0].url}
+            alt={name}
+            class="h-full w-full object-cover"
+          />
+        </button>
+
+        {hasMany && (
+          <>
+            <button
+              type="button"
+              class="gallery-nav absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-xl text-white hover:bg-black/70"
+              data-dir="-1"
+              aria-label="Anterior"
+            >
+              &#8249;
+            </button>
+            <button
+              type="button"
+              class="gallery-nav absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-xl text-white hover:bg-black/70"
+              data-dir="1"
+              aria-label="Siguiente"
+            >
+              &#8250;
+            </button>
+            <div
+              id="gallery-counter"
+              class="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
+            >
+              1 / {images.length}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Thumbnail strip */}
+      {hasMany && (
+        <div class="mt-2 flex gap-2 overflow-x-auto pb-1">
+          {images.map((img, i) => (
+            <button
+              type="button"
+              class="gallery-thumb shrink-0 overflow-hidden rounded-md border-2 border-transparent transition data-[active=true]:border-emerald-500"
+              data-index={i}
+              data-src={img.url}
+              data-active={i === 0 ? 'true' : 'false'}
+              aria-label={`Ver imagen ${i + 1}`}
+            >
+              <img
+                src={img.url}
+                alt={`${name} ${i + 1}`}
+                loading="lazy"
+                class="h-16 w-24 object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+{/* Lightbox overlay */}
+<div
+  id="lightbox"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4"
+>
+  <button id="lightbox-close" class="absolute right-4 top-4 text-3xl text-white" aria-label="Cerrar">&times;</button>
+  <button id="lightbox-prev" class="absolute left-4 text-4xl text-white" aria-label="Anterior">&#8249;</button>
+  <img id="lightbox-img" src="" alt="" class="max-h-[85vh] max-w-full rounded-lg" />
+  <button id="lightbox-next" class="absolute right-4 text-4xl text-white" aria-label="Siguiente">&#8250;</button>
+</div>
+
+<script>
+  const thumbs = Array.from(document.querySelectorAll<HTMLElement>('.gallery-thumb'));
+  const srcs = thumbs.length
+    ? thumbs.map((el) => el.dataset.src as string)
+    : (() => {
+        const main = document.getElementById('gallery-main') as HTMLImageElement | null;
+        return main ? [main.src] : [];
+      })();
+
+  const main = document.getElementById('gallery-main') as HTMLImageElement | null;
+  const counter = document.getElementById('gallery-counter');
+  const box = document.getElementById('lightbox')!;
+  const lightImg = document.getElementById('lightbox-img') as HTMLImageElement;
+  let current = 0;
+
+  function showInGallery(i: number) {
+    if (srcs.length === 0) return;
+    current = (i + srcs.length) % srcs.length;
+    if (main) main.src = srcs[current];
+    if (counter) counter.textContent = `${current + 1} / ${srcs.length}`;
+    thumbs.forEach((t, idx) => (t.dataset.active = idx === current ? 'true' : 'false'));
+  }
+
+  function openLightbox() {
+    if (srcs.length === 0) return;
+    lightImg.src = srcs[current];
+    box.classList.remove('hidden');
+    box.classList.add('flex');
+  }
+  function closeLightbox() {
+    box.classList.add('hidden');
+    box.classList.remove('flex');
+  }
+  function stepLightbox(d: number) {
+    current = (current + d + srcs.length) % srcs.length;
+    lightImg.src = srcs[current];
+    // Keep the main gallery in sync.
+    if (main) main.src = srcs[current];
+    if (counter) counter.textContent = `${current + 1} / ${srcs.length}`;
+    thumbs.forEach((t, idx) => (t.dataset.active = idx === current ? 'true' : 'false'));
+  }
+
+  // Carousel controls
+  document.querySelectorAll<HTMLElement>('.gallery-nav').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showInGallery(current + Number(btn.dataset.dir));
+    });
+  });
+  thumbs.forEach((t) =>
+    t.addEventListener('click', () => showInGallery(Number(t.dataset.index))),
+  );
+  document.getElementById('gallery-open')?.addEventListener('click', openLightbox);
+
+  // Lightbox controls
+  document.getElementById('lightbox-close')?.addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-next')?.addEventListener('click', () => stepLightbox(1));
+  document.getElementById('lightbox-prev')?.addEventListener('click', () => stepLightbox(-1));
+  box.addEventListener('click', (e) => {
+    if (e.target === box) closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (box.classList.contains('hidden')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') stepLightbox(1);
+    if (e.key === 'ArrowLeft') stepLightbox(-1);
+  });
+</script>
