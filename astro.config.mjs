@@ -4,6 +4,8 @@ import node from '@astrojs/node';
 import icon from 'astro-icon';
 import tailwindcss from '@tailwindcss/vite';
 
+import vercel from '@astrojs/vercel';
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
