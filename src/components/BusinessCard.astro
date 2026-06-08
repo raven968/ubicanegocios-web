@@ -1,5 +1,6 @@
 ---
 import Stars from './Stars.astro';
+import PlanBadge from './PlanBadge.astro';
 import type { Business } from '../lib/api';
 
 interface Props {
@@ -13,7 +14,7 @@ const cover = business.images?.[0]?.url;
   href={`/negocio/${business.slug}`}
   class="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md"
 >
-  <div class="aspect-video w-full overflow-hidden bg-gray-100">
+  <div class="relative aspect-video w-full overflow-hidden bg-gray-100">
     {
       cover ? (
         <img
@@ -27,6 +28,11 @@ const cover = business.images?.[0]?.url;
         </div>
       )
     }
+    {business.plan && (
+      <div class="absolute right-2 top-2">
+        <PlanBadge plan={business.plan} size="sm" />
+      </div>
+    )}
   </div>
   <div class="flex flex-1 flex-col p-4">
     <h3 class="font-semibold text-gray-900">{business.name}</h3>

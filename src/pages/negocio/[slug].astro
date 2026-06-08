@@ -3,6 +3,7 @@ import { Icon } from 'astro-icon/components';
 import Layout from '../../layouts/Layout.astro';
 import Stars from '../../components/Stars.astro';
 import Gallery from '../../components/Gallery.astro';
+import PlanBadge from '../../components/PlanBadge.astro';
 import ReviewForm from '../../components/ReviewForm.astro';
 import { getBusiness } from '../../lib/api';
 import { youtubeId } from '../../lib/youtube';
@@ -43,7 +44,10 @@ const telHref = business.phone ? `tel:${business.phone.replace(/\s+/g, '')}` : n
   </nav>
 
   <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
-    <h1 class="text-3xl font-bold text-gray-900">{business.name}</h1>
+    <div class="flex items-center gap-3">
+      {business.plan && <PlanBadge plan={business.plan} size="lg" />}
+      <h1 class="text-3xl font-bold text-gray-900">{business.name}</h1>
+    </div>
     {business.reviews_count > 0 && <Stars rating={business.average_rating} count={business.reviews_count} />}
   </div>
 

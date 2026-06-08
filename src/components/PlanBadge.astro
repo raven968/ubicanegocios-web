@@ -1,0 +1,37 @@
+---
+import { PLANS, type PlanSlug } from '../lib/api';
+
+interface Props {
+  plan: PlanSlug;
+  size?: 'sm' | 'md' | 'lg';
+  showName?: boolean;
+}
+
+const { plan, size = 'md', showName = false } = Astro.props;
+const info = PLANS[plan];
+
+const sizeClass = {
+  sm: 'h-10 w-10',
+  md: 'h-14 w-14',
+  lg: 'h-20 w-20',
+}[size];
+---
+
+{
+  info && (
+    <span
+      class="inline-flex items-center gap-2"
+      title={info.name}
+      aria-label={`Plan ${info.name}`}
+    >
+      <img
+        src={info.image}
+        alt={info.name}
+        class={`${sizeClass} object-contain drop-shadow`}
+      />
+      {showName && (
+        <span class="text-sm font-medium text-gray-700">{info.name}</span>
+      )}
+    </span>
+  )
+}
