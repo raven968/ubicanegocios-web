@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.110",
+    "@iconify-json/simple-icons": "^1.2.86",
     "@tailwindcss/vite": "^4.3.0",
     "tailwindcss": "^4.3.0"
   }

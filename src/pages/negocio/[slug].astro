@@ -17,7 +17,17 @@ if (!business) {
 
 const videos = business.videos ?? [];
 const reviews = business.reviews ?? [];
-const hasContact = Boolean(business.address || business.phone || business.email);
+type Social = { name: string; url: string; icon: string };
+const socials: Social[] = [];
+if (business.facebook) socials.push({ name: 'Facebook', url: business.facebook, icon: 'simple-icons:facebook' });
+if (business.instagram) socials.push({ name: 'Instagram', url: business.instagram, icon: 'simple-icons:instagram' });
+if (business.tiktok) socials.push({ name: 'TikTok', url: business.tiktok, icon: 'simple-icons:tiktok' });
+if (business.pinterest) socials.push({ name: 'Pinterest', url: business.pinterest, icon: 'simple-icons:pinterest' });
+if (business.website) socials.push({ name: 'Sitio web', url: business.website, icon: 'lucide:globe' });
+
+const hasContact = Boolean(
+  business.address || business.phone || business.email || socials.length,
+);
 const mapSrc = business.address
   ? `https://maps.google.com/maps?q=${encodeURIComponent(business.address)}&z=14&output=embed`
   : null;
@@ -137,6 +147,25 @@ const telHref = business.phone ? `tel:${business.phone.replace(/\s+/g, '')}` : n
                 <a href={`mailto:${business.email}`} class="text-gray-800 hover:text-emerald-600">
                   {business.email}
                 </a>
+              </div>
+            )}
+            {socials.length > 0 && (
+              <div class="border-t border-gray-100 pt-3">
+                <p class="mb-2 text-sm font-medium text-gray-700">Síguenos</p>
+                <div class="flex flex-wrap gap-2">
+                  {socials.map((s) => (
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={s.name}
+                      aria-label={s.name}
+                      class="grid h-9 w-9 place-items-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-emerald-600 hover:text-white"
+                    >
+                      <Icon name={s.icon} class="h-4 w-4" />
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>
