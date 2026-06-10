@@ -1,0 +1,134 @@
+---
+import type { BusinessVideo } from '../lib/api';
+import { youtubeId } from '../lib/youtube';
+
+interface Props {
+  videos: BusinessVideo[];
+  name: string;
+}
+
+const { videos, name } = Astro.props;
+
+const items = videos
+  .map((v) => ({ ...v, ytId: youtubeId(v.url) }))
+  .filter((v): v is BusinessVideo & { ytId: string } => Boolean(v.ytId));
+
+const hasMany = items.length > 1;
+const first = items[0];
+const stageClass = (orientation: string) =>
+  orientation === 'vertical' ? 'aspect-[9/16] w-full max-w-xs' : 'aspect-video w-full';
+---
+
+{
+  items.length > 0 && (
+    <div class="video-carousel">
+      {/* Player */}
+      <div
+        id="video-stage"
+        class={`relative mx-auto overflow-hidden rounded-xl bg-black ${stageClass(first.orientation)}`}
+      >
+        <iframe
+          id="video-frame"
+          class="h-full w-full"
+          src={`https://www.youtube.com/embed/${first.ytId}`}
+          title={`Video de ${name}`}
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        />
+
+        {hasMany && (
+          <>
+            <button
+              type="button"
+              class="video-nav absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-xl text-white hover:bg-black/70"
+              data-dir="-1"
+              aria-label="Video anterior"
+            >
+              &#8249;
+            </button>
+            <button
+              type="button"
+              class="video-nav absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-xl text-white hover:bg-black/70"
+              data-dir="1"
+              aria-label="Video siguiente"
+            >
+              &#8250;
+            </button>
+            <div
+              id="video-counter"
+              class="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
+            >
+              1 / {items.length}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Thumbnail strip */}
+      {hasMany && (
+        <div class="mt-2 flex gap-2 overflow-x-auto pb-1">
+          {items.map((v, i) => (
+            <button
+              type="button"
+              class="video-thumb relative shrink-0 overflow-hidden rounded-md border-2 border-transparent transition data-[active=true]:border-emerald-500"
+              data-index={i}
+              data-yt={v.ytId}
+              data-orientation={v.orientation}
+              data-active={i === 0 ? 'true' : 'false'}
+              aria-label={`Ver video ${i + 1}`}
+            >
+              <img
+                src={`https://img.youtube.com/vi/${v.ytId}/mqdefault.jpg`}
+                alt={`${name} video ${i + 1}`}
+                loading="lazy"
+                class="h-16 w-24 object-cover"
+              />
+              <span class="absolute inset-0 grid place-items-center">
+                <span class="grid h-7 w-7 place-items-center rounded-full bg-black/60 text-xs text-white">
+                  &#9654;
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+<script>
+  const stage = document.getElementById('video-stage');
+  const frame = document.getElementById('video-frame') as HTMLIFrameElement | null;
+  const counter = document.getElementById('video-counter');
+  const thumbs = Array.from(document.querySelectorAll<HTMLElement>('.video-thumb'));
+
+  if (stage && frame && thumbs.length > 0) {
+    let current = 0;
+
+    const applyOrientation = (orientation: string) => {
+      const vertical = orientation === 'vertical';
+      stage.classList.toggle('aspect-[9/16]', vertical);
+      stage.classList.toggle('max-w-xs', vertical);
+      stage.classList.toggle('aspect-video', !vertical);
+    };
+
+    const show = (i: number) => {
+      current = (i + thumbs.length) % thumbs.length;
+      const t = thumbs[current];
+      const ytId = t.dataset.yt;
+      // Reload the iframe with autoplay so switching feels responsive.
+      frame.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+      applyOrientation(t.dataset.orientation || 'horizontal');
+      if (counter) counter.textContent = `${current + 1} / ${thumbs.length}`;
+      thumbs.forEach((el, idx) => (el.dataset.active = idx === current ? 'true' : 'false'));
+    };
+
+    document.querySelectorAll<HTMLElement>('.video-nav').forEach((btn) => {
+      btn.addEventListener('click', () => show(current + Number(btn.dataset.dir)));
+    });
+    thumbs.forEach((t) =>
+      t.addEventListener('click', () => show(Number(t.dataset.index))),
+    );
+  }
+</script>

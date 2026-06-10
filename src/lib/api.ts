@@ -1,7 +1,7 @@
 // Server-side data access for the public site.
 const API_URL = import.meta.env.API_URL ?? 'http://localhost:8000/api/v1';
 
-export type PlanSlug = 'estrella' | 'pro' | 'destaca' | 'emprende' | 'lite';
+export type PlanSlug = 'fundador' | 'estrella' | 'pro' | 'destaca' | 'emprende' | 'lite';
 
 export interface PlanInfo {
   slug: PlanSlug;
@@ -10,6 +10,7 @@ export interface PlanInfo {
 }
 
 export const PLANS: Record<PlanSlug, PlanInfo> = {
+  fundador: { slug: 'fundador', name: 'Negocio Fundador', image: '/planes/fundador.png' },
   estrella: { slug: 'estrella', name: 'Negocio Estrella', image: '/planes/estrella.png' },
   pro: { slug: 'pro', name: 'Ubica Pro', image: '/planes/pro.png' },
   destaca: { slug: 'destaca', name: 'Destaca', image: '/planes/destaca.png' },
@@ -38,6 +39,13 @@ export interface BusinessImage {
   order: number;
 }
 
+export interface BusinessVideo {
+  id: number;
+  url: string;
+  orientation: 'horizontal' | 'vertical';
+  order: number;
+}
+
 export interface Review {
   id: number;
   author_name: string;
@@ -54,14 +62,13 @@ export interface Business {
   address: string | null;
   phone: string | null;
   email: string | null;
-  video_url: string | null;
-  video_orientation: 'horizontal' | 'vertical';
   tags: string[];
   active: boolean;
   plan: PlanSlug | null;
   average_rating: number;
   reviews_count: number;
   images: BusinessImage[];
+  videos: BusinessVideo[];
   categories: Category[];
   subcategories: Subcategory[];
   reviews?: Review[];

@@ -28,9 +28,9 @@ const [categories, latest] = await Promise.all([
         type="search"
         name="q"
         placeholder="¿Qué buscas? Ej. tacos, plomero…"
-        class="flex-1 bg-transparent px-3 py-2 text-gray-800 placeholder:text-gray-400 focus:outline-none"
+        class="min-w-0 flex-1 bg-transparent px-3 py-2 text-gray-800 placeholder:text-gray-400 focus:outline-none"
       />
-      <button class="rounded-full bg-gray-900 px-6 py-2.5 font-medium text-white hover:bg-gray-800">
+      <button class="shrink-0 rounded-full bg-gray-900 px-4 py-2.5 font-medium text-white hover:bg-gray-800 sm:px-6">
         Buscar
       </button>
     </form>

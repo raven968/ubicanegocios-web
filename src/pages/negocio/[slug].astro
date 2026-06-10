@@ -3,10 +3,10 @@ import { Icon } from 'astro-icon/components';
 import Layout from '../../layouts/Layout.astro';
 import Stars from '../../components/Stars.astro';
 import Gallery from '../../components/Gallery.astro';
+import VideoCarousel from '../../components/VideoCarousel.astro';
 import PlanBadge from '../../components/PlanBadge.astro';
 import ReviewForm from '../../components/ReviewForm.astro';
 import { getBusiness } from '../../lib/api';
-import { youtubeId } from '../../lib/youtube';
 
 const { slug } = Astro.params;
 const business = await getBusiness(slug!);
@@ -15,7 +15,7 @@ if (!business) {
   return Astro.redirect('/');
 }
 
-const videoId = youtubeId(business.video_url);
+const videos = business.videos ?? [];
 const reviews = business.reviews ?? [];
 const hasContact = Boolean(business.address || business.phone || business.email);
 const mapSrc = business.address
@@ -94,26 +94,7 @@ const telHref = business.phone ? `tel:${business.phone.replace(/\s+/g, '')}` : n
     </div>
 
     <div>
-      {
-        videoId && (
-          <div
-            class={`mx-auto overflow-hidden rounded-xl bg-black ${
-              business.video_orientation === 'vertical'
-                ? 'aspect-[9/16] w-full max-w-xs'
-                : 'aspect-video w-full'
-            }`}
-          >
-            <iframe
-              class="h-full w-full"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={`Video de ${business.name}`}
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-            />
-          </div>
-        )
-      }
+      {videos.length > 0 && <VideoCarousel videos={videos} name={business.name} />}
     </div>
   </div>
 
