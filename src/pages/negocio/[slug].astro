@@ -26,7 +26,7 @@ if (business.pinterest) socials.push({ name: 'Pinterest', url: business.pinteres
 if (business.website) socials.push({ name: 'Sitio web', url: business.website, icon: 'lucide:globe' });
 
 const hasContact = Boolean(
-  business.address || business.phone || business.email || socials.length,
+  business.address || business.phone || business.phone2 || business.email || socials.length,
 );
 const mapSrc = business.address
   ? `https://maps.google.com/maps?q=${encodeURIComponent(business.address)}&z=14&output=embed`
@@ -35,6 +35,7 @@ const mapsLink = business.address
   ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`
   : null;
 const telHref = business.phone ? `tel:${business.phone.replace(/\s+/g, '')}` : null;
+const telHref2 = business.phone2 ? `tel:${business.phone2.replace(/\s+/g, '')}` : null;
 ---
 
 <Layout title={`${business.name} · UbicaNegocios`} description={business.description ?? ''}>
@@ -138,6 +139,14 @@ const telHref = business.phone ? `tel:${business.phone.replace(/\s+/g, '')}` : n
                 <Icon name="lucide:phone" class="h-5 w-5 shrink-0 text-emerald-600" />
                 <a href={telHref!} class="text-gray-800 hover:text-emerald-600">
                   {business.phone}
+                </a>
+              </div>
+            )}
+            {business.phone2 && (
+              <div class="flex items-center gap-3">
+                <Icon name="lucide:phone" class="h-5 w-5 shrink-0 text-emerald-600" />
+                <a href={telHref2!} class="text-gray-800 hover:text-emerald-600">
+                  {business.phone2}
                 </a>
               </div>
             )}
