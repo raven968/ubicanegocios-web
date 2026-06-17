@@ -34,8 +34,11 @@ const mapSrc = business.address
 const mapsLink = business.address
   ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`
   : null;
-const telHref = business.phone ? `tel:${business.phone.replace(/\s+/g, '')}` : null;
-const telHref2 = business.phone2 ? `tel:${business.phone2.replace(/\s+/g, '')}` : null;
+const waText = encodeURIComponent(`Hola, vi su negocio "${business.name}" en UbicaNegocios y me interesa más información.`);
+const phones = [
+  { value: business.phone, isWhatsapp: business.whatsapp_phone === 'phone' },
+  { value: business.phone2, isWhatsapp: business.whatsapp_phone === 'phone2' },
+].filter((p): p is { value: string; isWhatsapp: boolean } => Boolean(p.value));
 ---
 
 <Layout title={`${business.name} · UbicaNegocios`} description={business.description ?? ''}>
@@ -134,21 +137,28 @@ const telHref2 = business.phone2 ? `tel:${business.phone2.replace(/\s+/g, '')}` 
                 </div>
               </div>
             )}
-            {business.phone && (
-              <div class="flex items-center gap-3">
-                <Icon name="lucide:phone" class="h-5 w-5 shrink-0 text-emerald-600" />
-                <a href={telHref!} class="text-gray-800 hover:text-emerald-600">
-                  {business.phone}
+            {phones.map((p) =>
+              p.isWhatsapp ? (
+                <a
+                  href={`https://wa.me/${p.value.replace(/\D/g, '')}?text=${waText}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-3 text-gray-800 hover:text-emerald-600"
+                >
+                  <Icon name="simple-icons:whatsapp" class="h-5 w-5 shrink-0 text-green-600" />
+                  <span>
+                    {p.value}
+                    <span class="ml-1.5 text-xs font-medium text-green-600">WhatsApp</span>
+                  </span>
                 </a>
-              </div>
-            )}
-            {business.phone2 && (
-              <div class="flex items-center gap-3">
-                <Icon name="lucide:phone" class="h-5 w-5 shrink-0 text-emerald-600" />
-                <a href={telHref2!} class="text-gray-800 hover:text-emerald-600">
-                  {business.phone2}
-                </a>
-              </div>
+              ) : (
+                <div class="flex items-center gap-3">
+                  <Icon name="lucide:phone" class="h-5 w-5 shrink-0 text-emerald-600" />
+                  <a href={`tel:${p.value.replace(/\s+/g, '')}`} class="text-gray-800 hover:text-emerald-600">
+                    {p.value}
+                  </a>
+                </div>
+              ),
             )}
             {business.email && (
               <div class="flex items-center gap-3">
