@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
 import BusinessCard from '../components/BusinessCard.astro';
+import CategoryIcon from '../components/CategoryIcon.astro';
 import { getCategories, getBusinesses } from '../lib/api';
 
 const [categories, latest] = await Promise.all([
@@ -46,7 +47,7 @@ const [categories, latest] = await Promise.all([
             class="group relative flex flex-col items-center rounded-xl border border-gray-200 bg-white px-3 py-5 text-center transition hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md"
           >
             <span class="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition group-hover:bg-emerald-100">
-              <Icon name={cat.icon ?? 'lucide:map-pin'} class="h-6 w-6" />
+              <CategoryIcon name={cat.icon} class="h-6 w-6" />
             </span>
             <span class="text-sm font-medium leading-tight text-gray-800">{cat.name}</span>
             {cat.businesses_count > 0 && (

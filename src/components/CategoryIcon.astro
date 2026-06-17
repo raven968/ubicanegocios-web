@@ -1,0 +1,32 @@
+---
+import { Icon } from 'astro-icon/components';
+import lucide from '@iconify-json/lucide/icons.json';
+
+// Renders a category icon coming from user data. A bad/unknown icon name would
+// make astro-icon throw and blank the whole page, so we validate the name
+// against the installed lucide set and fall back to a safe default.
+interface Props {
+  name: string | null;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+const FALLBACK = 'lucide:map-pin';
+
+const icons = lucide.icons as Record<string, unknown>;
+const aliases = (lucide.aliases ?? {}) as Record<string, unknown>;
+const exists = (n: string) => n in icons || n in aliases;
+
+function resolve(value: string | null): string {
+  const raw = (value ?? '').replace(/^lucide:/, '');
+  if (exists(raw)) return `lucide:${raw}`;
+  // Normalize the duplicated-prefix bug: "lucide-user-star" -> "user-star".
+  const cleaned = raw.replace(/^lucide-/, '');
+  if (exists(cleaned)) return `lucide:${cleaned}`;
+  return FALLBACK;
+}
+
+const iconName = resolve(name);
+---
+
+<Icon name={iconName} class={className} />
