@@ -7,6 +7,7 @@ import VideoCarousel from '../../components/VideoCarousel.astro';
 import PlanBadge from '../../components/PlanBadge.astro';
 import ReviewForm from '../../components/ReviewForm.astro';
 import { getBusiness } from '../../lib/api';
+import { renderDescription } from '../../lib/markdown';
 
 const { slug } = Astro.params;
 const business = await getBusiness(slug!);
@@ -91,7 +92,10 @@ const phones = [
         business.description && (
           <div class="mt-6">
             <h2 class="mb-2 text-lg font-semibold text-gray-900">Descripción</h2>
-            <p class="whitespace-pre-line text-gray-700">{business.description}</p>
+            <div
+              class="space-y-2 text-gray-700 [&_a]:font-medium [&_a]:text-blue-600 [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+              set:html={renderDescription(business.description)}
+            />
           </div>
         )
       }

@@ -2,12 +2,14 @@
 import Stars from './Stars.astro';
 import PlanBadge from './PlanBadge.astro';
 import type { Business } from '../lib/api';
+import { stripMarkdown } from '../lib/markdown';
 
 interface Props {
   business: Business;
 }
 const { business } = Astro.props;
 const cover = business.images?.[0]?.url;
+const descriptionPreview = business.description ? stripMarkdown(business.description) : '';
 ---
 
 <a
@@ -37,8 +39,8 @@ const cover = business.images?.[0]?.url;
   <div class="flex flex-1 flex-col p-4">
     <h3 class="font-semibold text-gray-900">{business.name}</h3>
     {
-      business.description && (
-        <p class="mt-1 line-clamp-2 text-sm text-gray-500">{business.description}</p>
+      descriptionPreview && (
+        <p class="mt-1 line-clamp-2 text-sm text-gray-500">{descriptionPreview}</p>
       )
     }
     <div class="mt-3 flex items-center justify-between">
