@@ -7,6 +7,9 @@ interface Props {
 }
 
 const { title = 'UbicaNegocios', description = 'Directorio de negocios locales' } = Astro.props;
+
+const gaId = import.meta.env.PUBLIC_GA_ID;
+const gaEnabled = import.meta.env.PROD && !!gaId;
 ---
 
 <!doctype html>
@@ -21,6 +24,26 @@ const { title = 'UbicaNegocios', description = 'Directorio de negocios locales' 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
     <title>{title}</title>
+
+    {
+      gaEnabled && (
+        <>
+          <script
+            is:inline
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+          />
+          <script is:inline define:vars={{ gaId }}>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', gaId);
+          </script>
+        </>
+      )
+    }
   </head>
   <body class="min-h-screen bg-gray-50 text-gray-800 antialiased">
     <header class="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
