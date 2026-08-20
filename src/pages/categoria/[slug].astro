@@ -12,7 +12,8 @@ if (!category) {
 }
 
 const sub = Astro.url.searchParams.get('sub') ?? '';
-const params: Record<string, string> = { category: category.slug };
+// sort=plan: los negocios se listan por plan (fundador → lite) y luego por fecha.
+const params: Record<string, string> = { category: category.slug, sort: 'plan' };
 if (sub) params.subcategory = sub;
 
 const businesses = await getBusinesses(params).catch(() => []);

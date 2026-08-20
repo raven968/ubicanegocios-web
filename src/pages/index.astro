@@ -1,13 +1,14 @@
 ---
-import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
 import BusinessCard from '../components/BusinessCard.astro';
 import CategoryIcon from '../components/CategoryIcon.astro';
-import { getCategories, getBusinesses } from '../lib/api';
+import SearchBar from '../components/SearchBar.astro';
+import { getCategories, getBusinesses, getZones } from '../lib/api';
 
-const [categories, latest] = await Promise.all([
+const [categories, latest, zones] = await Promise.all([
   getCategories(),
   getBusinesses().catch(() => []),
+  getZones().catch(() => []),
 ]);
 ---
 
@@ -17,24 +18,9 @@ const [categories, latest] = await Promise.all([
     <p class="mx-auto mt-2 max-w-xl text-emerald-50">
       Explora por categoría o busca lo que necesitas en tu localidad.
     </p>
-    <form
-      action="/buscar"
-      method="get"
-      class="mx-auto mt-6 flex max-w-xl items-stretch overflow-hidden rounded-full bg-white p-1 shadow-lg ring-1 ring-black/5"
-    >
-      <span class="flex items-center pl-4 text-gray-400">
-        <Icon name="lucide:search" class="h-5 w-5" />
-      </span>
-      <input
-        type="search"
-        name="q"
-        placeholder="¿Qué buscas? Ej. tacos, plomero…"
-        class="min-w-0 flex-1 bg-transparent px-3 py-2 text-gray-800 placeholder:text-gray-400 focus:outline-none"
-      />
-      <button class="shrink-0 rounded-full bg-gray-900 px-4 py-2.5 font-medium text-white hover:bg-gray-800 sm:px-6">
-        Buscar
-      </button>
-    </form>
+    <div class="mx-auto mt-6 max-w-xl text-left">
+      <SearchBar zones={zones} variant="hero" />
+    </div>
   </section>
 
   <section class="mb-12">

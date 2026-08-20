@@ -1,34 +1,50 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BusinessCard from '../components/BusinessCard.astro';
-import { getBusinesses } from '../lib/api';
+import SearchBar from '../components/SearchBar.astro';
+import { getBusinesses, getZones } from '../lib/api';
 
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
-const businesses = q ? await getBusinesses({ search: q }).catch(() => []) : [];
+const zoneSlug = Astro.url.searchParams.get('zona')?.trim() ?? '';
+
+const zones = await getZones().catch(() => []);
+const zone = zones.find((z) => z.slug === zoneSlug) ?? null;
+
+// Sin término se puede seguir filtrando: una zona sola ya es una búsqueda válida.
+const params: Record<string, string> = {};
+if (q) params.search = q;
+if (zone) params.zone = zone.slug;
+
+// sort=plan: los negocios se listan por plan (fundador → lite) y luego por fecha.
+const businesses = Object.keys(params).length
+  ? await getBusinesses({ ...params, sort: 'plan' }).catch(() => [])
+  : [];
+
+const heading = q ? `Resultados para “${q}”` : zone ? `Negocios en ${zone.name}` : 'Buscar negocios';
+const emptyText = q
+  ? `No encontramos negocios para “${q}”${zone ? ` en ${zone.name}` : ''}.`
+  : `Todavía no hay negocios en ${zone?.name}.`;
 ---
 
-<Layout title={q ? `Resultados para "${q}"` : 'Buscar'}>
-  <h1 class="mb-2 text-2xl font-bold text-gray-900">
-    {q ? `Resultados para “${q}”` : 'Buscar negocios'}
-  </h1>
-
-  <form action="/buscar" method="get" class="mb-6 flex max-w-md gap-2">
-    <input
-      type="search"
-      name="q"
-      value={q}
-      placeholder="Buscar negocios…"
-      class="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-    />
-    <button class="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-      Buscar
-    </button>
-  </form>
+<Layout title={q ? `Resultados para "${q}"` : zone ? `Negocios en ${zone.name}` : 'Buscar'}>
+  <h1 class="mb-2 text-2xl font-bold text-gray-900">{heading}</h1>
 
   {
-    q && businesses.length === 0 && (
+    zone && q && (
+      <p class="mb-4 text-sm text-gray-500">
+        Filtrando por zona <span class="font-medium text-gray-700">{zone.name}</span>.
+      </p>
+    )
+  }
+
+  <div class="mb-6 max-w-2xl">
+    <SearchBar zones={zones} q={q} zone={zone?.slug ?? ''} />
+  </div>
+
+  {
+    Object.keys(params).length > 0 && businesses.length === 0 && (
       <p class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
-        No encontramos negocios para “{q}”.
+        {emptyText}
       </p>
     )
   }

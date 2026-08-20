@@ -1,0 +1,60 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { Zone } from '../lib/api';
+
+interface Props {
+  zones: Zone[];
+  q?: string;
+  zone?: string;
+  /** `hero` = píldora blanca sobre el degradado; `page` = versión compacta. */
+  variant?: 'hero' | 'page';
+}
+
+const { zones, q = '', zone = '', variant = 'page' } = Astro.props;
+const isHero = variant === 'hero';
+---
+
+<form
+  action="/buscar"
+  method="get"
+  class={`flex items-stretch overflow-hidden rounded-full bg-white ${
+    isHero ? 'p-1 shadow-lg ring-1 ring-black/5' : 'border border-gray-300'
+  }`}
+>
+  {
+    zones.length > 0 && (
+      <label class="flex shrink-0 items-center border-r border-gray-200 pl-3 pr-1 text-gray-500">
+        <Icon name="lucide:map-pin" class="mr-1 h-4 w-4 text-gray-400" />
+        <span class="sr-only">Zona</span>
+        <select
+          name="zona"
+          class="max-w-[9rem] cursor-pointer appearance-none bg-transparent py-2 pr-5 text-sm text-gray-700 focus:outline-none"
+        >
+          <option value="">Todas las zonas</option>
+          {zones.map((z) => (
+            <option value={z.slug} selected={z.slug === zone}>
+              {z.name}
+            </option>
+          ))}
+        </select>
+        <Icon name="lucide:chevron-down" class="pointer-events-none -ml-4 h-4 w-4 text-gray-400" />
+      </label>
+    )
+  }
+
+  <input
+    type="search"
+    name="q"
+    value={q}
+    placeholder="¿Qué buscas? Ej. tacos, plomero…"
+    class="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+  />
+
+  <button
+    class={`shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white sm:px-6 ${
+      isHero ? 'bg-gray-900 hover:bg-gray-800' : 'bg-emerald-600 hover:bg-emerald-700'
+    }`}
+  >
+    Buscar
+  </button>
+</form>

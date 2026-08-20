@@ -33,6 +33,14 @@ export interface Category {
   businesses_count: number;
 }
 
+export interface Zone {
+  id: number;
+  name: string;
+  slug: string;
+  order: number;
+  businesses_count: number;
+}
+
 export interface BusinessImage {
   id: number;
   url: string;
@@ -78,6 +86,7 @@ export interface Business {
   videos: BusinessVideo[];
   categories: Category[];
   subcategories: Subcategory[];
+  zones: Zone[];
   reviews?: Review[];
 }
 
@@ -93,6 +102,11 @@ async function get<T>(path: string): Promise<T> {
 
 export async function getCategories(): Promise<Category[]> {
   const { data } = await get<{ data: Category[] }>('/categories');
+  return data;
+}
+
+export async function getZones(): Promise<Zone[]> {
+  const { data } = await get<{ data: Zone[] }>('/zones');
   return data;
 }
 
