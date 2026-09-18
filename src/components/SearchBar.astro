@@ -14,21 +14,26 @@ const { zones, q = '', zone = '', variant = 'page' } = Astro.props;
 const isHero = variant === 'hero';
 ---
 
+<!--
+  En móvil el formulario se apila (flex-col-reverse): la fila de búsqueda queda
+  arriba con todo el ancho y el selector de zona baja como filtro secundario.
+  Desde `sm` vuelve a ser una sola píldora horizontal con la zona a la izquierda.
+-->
 <form
   action="/buscar"
   method="get"
-  class={`flex items-stretch overflow-hidden rounded-full bg-white ${
+  class={`flex flex-col-reverse overflow-hidden rounded-2xl bg-white sm:flex-row sm:items-stretch sm:rounded-full ${
     isHero ? 'p-1 shadow-lg ring-1 ring-black/5' : 'border border-gray-300'
   }`}
 >
   {
     zones.length > 0 && (
-      <label class="flex shrink-0 items-center border-r border-gray-200 pl-3 pr-1 text-gray-500">
-        <Icon name="lucide:map-pin" class="mr-1 h-4 w-4 text-gray-400" />
+      <label class="flex shrink-0 items-center border-t border-gray-200 px-3 text-gray-500 sm:border-r sm:border-t-0 sm:pl-3 sm:pr-1">
+        <Icon name="lucide:map-pin" class="mr-1 h-4 w-4 shrink-0 text-gray-400" />
         <span class="sr-only">Zona</span>
         <select
           name="zona"
-          class="max-w-[9rem] cursor-pointer appearance-none bg-transparent py-2 pr-5 text-sm text-gray-700 focus:outline-none"
+          class="w-full cursor-pointer appearance-none bg-transparent py-2 pr-5 text-sm text-gray-700 focus:outline-none sm:max-w-[9rem]"
         >
           <option value="">Todas las zonas</option>
           {zones.map((z) => (
@@ -37,24 +42,28 @@ const isHero = variant === 'hero';
             </option>
           ))}
         </select>
-        <Icon name="lucide:chevron-down" class="pointer-events-none -ml-4 h-4 w-4 text-gray-400" />
+        <Icon name="lucide:chevron-down" class="pointer-events-none -ml-4 h-4 w-4 shrink-0 text-gray-400" />
       </label>
     )
   }
 
-  <input
-    type="search"
-    name="q"
-    value={q}
-    placeholder="¿Qué buscas? Ej. tacos, plomero…"
-    class="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
-  />
+  <div class="flex min-w-0 flex-1 items-stretch">
+    <input
+      type="search"
+      name="q"
+      value={q}
+      placeholder="¿Qué buscas? Ej. tacos, plomero…"
+      class="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+    />
 
-  <button
-    class={`shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white sm:px-6 ${
-      isHero ? 'bg-gray-900 hover:bg-gray-800' : 'bg-emerald-600 hover:bg-emerald-700'
-    }`}
-  >
-    Buscar
-  </button>
+    <button
+      aria-label="Buscar"
+      class={`flex shrink-0 items-center justify-center rounded-full px-3 py-2 text-sm font-medium text-white sm:px-6 ${
+        isHero ? 'bg-gray-900 hover:bg-gray-800' : 'bg-emerald-600 hover:bg-emerald-700'
+      }`}
+    >
+      <Icon name="lucide:search" class="h-5 w-5 sm:hidden" />
+      <span class="hidden sm:inline">Buscar</span>
+    </button>
+  </div>
 </form>

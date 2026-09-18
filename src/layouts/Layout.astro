@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import '../styles/global.css';
 
 interface Props {
@@ -51,14 +52,24 @@ const gaEnabled = import.meta.env.PROD && !!gaId;
         <a href="/" class="flex items-center gap-2">
           <img src="/logo.png" alt="UbicaNegocios" class="h-9 w-auto" />
         </a>
-        <form action="/buscar" method="get" class="hidden sm:block">
-          <input
-            type="search"
-            name="q"
-            placeholder="Buscar negocios…"
-            class="w-64 rounded-full border border-gray-300 px-4 py-1.5 text-sm focus:border-emerald-500 focus:outline-none"
-          />
-        </form>
+        <div class="flex items-center gap-3">
+          <form action="/buscar" method="get" class="hidden sm:block">
+            <input
+              type="search"
+              name="q"
+              placeholder="Buscar negocios…"
+              class="w-64 rounded-full border border-gray-300 px-4 py-1.5 text-sm focus:border-emerald-500 focus:outline-none"
+            />
+          </form>
+          <a
+            href="/preguntas-frecuentes"
+            aria-label="Preguntas frecuentes"
+            class="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-emerald-600"
+          >
+            <Icon name="lucide:message-circle-question-mark" class="h-5 w-5" />
+            <span class="hidden sm:inline">Preguntas</span>
+          </a>
+        </div>
       </div>
     </header>
 
@@ -68,6 +79,10 @@ const gaEnabled = import.meta.env.PROD && !!gaId;
 
     <footer class="mt-16 border-t border-gray-200 bg-white">
       <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-gray-500">
+        <nav class="mb-4 flex flex-wrap justify-center gap-x-5 gap-y-2">
+          <a href="/" class="hover:text-emerald-600">Inicio</a>
+          <a href="/preguntas-frecuentes" class="hover:text-emerald-600">Preguntas frecuentes</a>
+        </nav>
         <p>© {new Date().getFullYear()} UbicaNegocios · Directorio de negocios locales</p>
         <p class="mt-1">
           Desarrollado por{' '}

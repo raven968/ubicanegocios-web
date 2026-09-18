@@ -1,1 +1,6 @@
 @import 'tailwindcss';
+
+/* Safari/iOS aún dibuja el triángulo nativo del <details> pese a `list-none`. */
+summary::-webkit-details-marker {
+  display: none;
+}

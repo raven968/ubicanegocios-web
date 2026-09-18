@@ -1,0 +1,300 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+
+const PHONE = '639 128 15 10';
+const PHONE_DIGITS = '526391281510';
+const PROMO_CODE = 'Ubicaweb8';
+
+type Block =
+  | { type: 'text'; value: string }
+  | { type: 'highlight'; value: string }
+  | { type: 'list'; value: string[] };
+
+interface Faq {
+  id: string;
+  icon: string;
+  question: string;
+  answer: Block[];
+}
+
+const faqs: Faq[] = [
+  {
+    id: 'como-ingresar',
+    icon: 'lucide:user-plus',
+    question: '¿Cómo puedo ingresar a UbicaNegocios?',
+    answer: [
+      { type: 'text', value: 'Es muy fácil.' },
+      { type: 'text', value: `Comunícate con nosotros al ${PHONE} y te ayudaremos con tu registro.` },
+      {
+        type: 'highlight',
+        value: `Además, al mencionar la palabra clave ${PROMO_CODE}, obtienes 20% de descuento en tu primer pago.`,
+      },
+    ],
+  },
+  {
+    id: 'quienes-somos',
+    icon: 'lucide:users',
+    question: '¿Quiénes somos?',
+    answer: [
+      {
+        type: 'text',
+        value:
+          'UbicaNegocios.com es un catálogo digital creado para ayudar a negocios, emprendedores y prestadores de servicios a tener mayor presencia en internet.',
+      },
+      {
+        type: 'text',
+        value: 'Ayudamos a que las personas encuentren negocios, productos y servicios de manera sencilla.',
+      },
+      {
+        type: 'text',
+        value:
+          'No somos vendedores ni intermediarios. El cliente se comunica directamente con cada negocio. Por eso nuestro concepto es:',
+      },
+      { type: 'highlight', value: 'Encuentra, Conecta y Vende.' },
+    ],
+  },
+  {
+    id: 'objetivo',
+    icon: 'lucide:target',
+    question: '¿Cuál es nuestro objetivo?',
+    answer: [
+      { type: 'text', value: 'Nuestro objetivo es muy sencillo:' },
+      {
+        type: 'highlight',
+        value: 'Ayudar a las personas a encontrar lo que necesitan y ayudar a los negocios a ser encontrados.',
+      },
+      {
+        type: 'text',
+        value:
+          'Queremos que más negocios, pequeños o grandes, puedan tener presencia en internet de una manera accesible.',
+      },
+    ],
+  },
+  {
+    id: 'de-donde-somos',
+    icon: 'lucide:map-pin',
+    question: '¿De dónde somos?',
+    answer: [
+      { type: 'text', value: 'UbicaNegocios.com nació en Delicias, Chihuahua, México.' },
+      {
+        type: 'text',
+        value:
+          'Nuestro proyecto comenzó para apoyar al comercio local y facilitar que los negocios de la región puedan ser encontrados en internet.',
+      },
+      { type: 'text', value: 'Seguimos creciendo para llegar a más ciudades.' },
+    ],
+  },
+  {
+    id: 'donde-estamos',
+    icon: 'lucide:map',
+    question: '¿En qué lugares estamos?',
+    answer: [
+      { type: 'text', value: 'Actualmente tenemos presencia principalmente en:' },
+      { type: 'list', value: ['Delicias', 'Meoqui', 'Camargo', 'Jiménez', 'Parral', 'Otras localidades de la región'] },
+      { type: 'text', value: 'Continuaremos agregando nuevas ciudades y negocios.' },
+    ],
+  },
+  {
+    id: 'tipos-de-negocios',
+    icon: 'lucide:store',
+    question: '¿Qué tipos de negocios pueden ingresar?',
+    answer: [
+      {
+        type: 'text',
+        value:
+          'Pueden ingresar negocios, emprendedores y personas que ofrezcan productos o servicios. Por ejemplo:',
+      },
+      {
+        type: 'list',
+        value: [
+          'Restaurantes y comercios',
+          'Emprendedores desde casa',
+          'Vendedores por catálogo',
+          'Profesionistas y oficios',
+          'Estéticas y barberías',
+          'Empresas',
+          'Vendedores ambulantes',
+          'Venta de vehículos',
+          'Venta y renta de propiedades',
+          'Hospedajes',
+          'Negocios que venden por redes sociales',
+        ],
+      },
+      { type: 'text', value: 'Siempre que cumplan con las políticas de UbicaNegocios.com.' },
+    ],
+  },
+  {
+    id: 'negocio-pequeno',
+    icon: 'lucide:home',
+    question: '¿Puedo registrarme si mi negocio es pequeño o vendo desde mi casa?',
+    answer: [
+      { type: 'text', value: 'Sí. No necesitas tener un local.' },
+      {
+        type: 'text',
+        value:
+          'Puedes ingresar si vendes desde casa, por pedido, redes sociales, WhatsApp o si apenas estás comenzando tu negocio.',
+      },
+      {
+        type: 'highlight',
+        value: '¡Si tienes un producto o servicio que ofrecer, puedes formar parte de UbicaNegocios!',
+      },
+    ],
+  },
+  {
+    id: 'beneficios',
+    icon: 'lucide:sparkles',
+    question: '¿Qué beneficios tengo al formar parte de UbicaNegocios?',
+    answer: [
+      {
+        type: 'list',
+        value: [
+          'Perfil dentro de UbicaNegocios.com',
+          'Información de tus productos o servicios',
+          'Mayor presencia en internet',
+          'Mayor facilidad para que nuevos clientes te encuentren',
+          'Contacto directo con tus clientes',
+          'Presencia en nuestro catálogo digital',
+          'Difusión dentro de estrategias generales de UbicaNegocios',
+          'Opciones para destacar tu negocio',
+          'Actualización de información según tu membresía',
+          'Participación en campañas o dinámicas especiales cuando corresponda',
+        ],
+      },
+      { type: 'highlight', value: 'UbicaNegocios no cobra comisión por tus ventas.' },
+      { type: 'text', value: 'El cliente encuentra tu negocio y se comunica directamente contigo.' },
+    ],
+  },
+  {
+    id: 'facturas',
+    icon: 'lucide:receipt',
+    question: '¿UbicaNegocios emite facturas?',
+    answer: [
+      { type: 'text', value: 'Por el momento no emitimos facturas.' },
+      { type: 'text', value: 'Actualmente nos encontramos realizando los trámites correspondientes ante el SAT.' },
+      { type: 'text', value: 'Cuando el servicio de facturación esté disponible, lo informaremos a nuestros clientes.' },
+    ],
+  },
+];
+
+const waText = encodeURIComponent('Hola, quiero registrar mi negocio en UbicaNegocios.');
+---
+
+<Layout
+  title="Preguntas frecuentes · UbicaNegocios"
+  description="Resolvemos las dudas más comunes sobre UbicaNegocios: cómo registrarte, quiénes somos, dónde estamos y qué beneficios tiene formar parte del catálogo."
+>
+  <nav class="mb-4 text-sm text-gray-500">
+    <a href="/" class="hover:underline">Inicio</a> / <span>Preguntas frecuentes</span>
+  </nav>
+
+  <section
+    class="mb-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-500 px-6 py-12 text-center text-white"
+  >
+    <span
+      class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/30"
+    >
+      <Icon name="lucide:message-circle-question-mark" class="h-7 w-7" />
+    </span>
+    <h1 class="text-3xl font-bold sm:text-4xl">Preguntas frecuentes</h1>
+    <p class="mx-auto mt-2 max-w-xl text-emerald-50">
+      Todo lo que necesitas saber sobre UbicaNegocios: quiénes somos, cómo registrar tu negocio y qué beneficios
+      obtienes.
+    </p>
+  </section>
+
+  <div class="mx-auto max-w-3xl">
+    <div class="space-y-3">
+      {
+        faqs.map((faq, i) => (
+          <details
+            id={faq.id}
+            name="faq"
+            class="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:border-emerald-300 open:border-emerald-400 open:shadow-md"
+          >
+            <summary class="flex cursor-pointer list-none items-center gap-3 px-4 py-4 sm:px-5">
+              <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition group-open:bg-emerald-600 group-open:text-white">
+                <Icon name={faq.icon} class="h-5 w-5" />
+              </span>
+              <h2 class="min-w-0 flex-1 text-left text-base font-semibold text-gray-900 sm:text-lg">
+                {faq.question}
+              </h2>
+              <Icon
+                name="lucide:chevron-down"
+                class="h-5 w-5 shrink-0 text-gray-400 transition group-open:rotate-180 group-open:text-emerald-600"
+              />
+            </summary>
+
+            <div class="space-y-3 border-t border-gray-100 px-4 pb-5 pt-4 text-sm leading-relaxed text-gray-600 sm:px-5 sm:pl-[4.25rem]">
+              {faq.answer.map((block) =>
+                block.type === 'list' ? (
+                  <ul class="grid gap-2 sm:grid-cols-2">
+                    {block.value.map((item) => (
+                      <li class="flex items-start gap-2">
+                        <Icon name="lucide:check" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : block.type === 'highlight' ? (
+                  <p class="rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3 font-medium text-emerald-800">
+                    {block.value}
+                  </p>
+                ) : (
+                  <p>{block.value}</p>
+                ),
+              )}
+
+              {i === 0 && (
+                <div class="flex flex-wrap gap-2 pt-1">
+                  <a
+                    href={`https://wa.me/${PHONE_DIGITS}?text=${waText}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                  >
+                    <Icon name="simple-icons:whatsapp" class="h-4 w-4" />
+                    Escríbenos por WhatsApp
+                  </a>
+                  <a
+                    href={`tel:+${PHONE_DIGITS}`}
+                    class="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-emerald-400 hover:text-emerald-700"
+                  >
+                    <Icon name="lucide:phone" class="h-4 w-4" />
+                    {PHONE}
+                  </a>
+                </div>
+              )}
+            </div>
+          </details>
+        ))
+      }
+    </div>
+
+    <section class="mt-10 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-8 text-center">
+      <h2 class="text-xl font-bold text-gray-900">¿Te quedó alguna duda?</h2>
+      <p class="mx-auto mt-2 max-w-md text-sm text-gray-600">
+        Comunícate con nosotros y con gusto te ayudamos a registrar tu negocio. Menciona la palabra clave{' '}
+        <span class="font-semibold text-emerald-700">{PROMO_CODE}</span> y obtén 20% de descuento en tu primer pago.
+      </p>
+      <div class="mt-5 flex flex-wrap justify-center gap-3">
+        <a
+          href={`https://wa.me/${PHONE_DIGITS}?text=${waText}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700"
+        >
+          <Icon name="simple-icons:whatsapp" class="h-4 w-4" />
+          WhatsApp
+        </a>
+        <a
+          href={`tel:+${PHONE_DIGITS}`}
+          class="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+        >
+          <Icon name="lucide:phone" class="h-4 w-4" />
+          {PHONE}
+        </a>
+      </div>
+    </section>
+  </div>
+</Layout>
