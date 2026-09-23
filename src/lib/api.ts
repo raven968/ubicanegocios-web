@@ -1,7 +1,7 @@
 // Server-side data access for the public site.
 const API_URL = import.meta.env.API_URL ?? 'http://localhost:8000/api/v1';
 
-export type PlanSlug = 'fundador' | 'estrella' | 'pro' | 'destaca' | 'emprende' | 'lite';
+export type PlanSlug = 'fundador' | 'estrella' | 'pro' | 'destaca' | 'emprende' | 'lite' | 'ubitag';
 
 export interface PlanInfo {
   slug: PlanSlug;
@@ -16,6 +16,7 @@ export const PLANS: Record<PlanSlug, PlanInfo> = {
   destaca: { slug: 'destaca', name: 'Destaca', image: '/planes/destaca.png' },
   emprende: { slug: 'emprende', name: 'Emprende', image: '/planes/emprende.png' },
   lite: { slug: 'lite', name: 'Ubica Lite', image: '/planes/lite.png' },
+  ubitag: { slug: 'ubitag', name: 'UbiTag', image: '/planes/ubitag.png' },
 };
 
 export interface Subcategory {

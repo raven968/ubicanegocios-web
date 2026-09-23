@@ -12,7 +12,7 @@ if (!category) {
 }
 
 const sub = Astro.url.searchParams.get('sub') ?? '';
-// sort=plan: los negocios se listan por plan (fundador → lite) y luego por fecha.
+// sort=plan: los negocios se listan por plan (fundador → ubitag) y luego por fecha.
 // all=1: se muestran todos los negocios de la categoría, sin paginar.
 const params: Record<string, string> = { category: category.slug, sort: 'plan', all: '1' };
 if (sub) params.subcategory = sub;

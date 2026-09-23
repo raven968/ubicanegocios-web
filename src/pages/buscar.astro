@@ -15,7 +15,7 @@ const params: Record<string, string> = {};
 if (q) params.search = q;
 if (zone) params.zone = zone.slug;
 
-// sort=plan: los negocios se listan por plan (fundador → lite) y luego por fecha.
+// sort=plan: los negocios se listan por plan (fundador → ubitag) y luego por fecha.
 const businesses = Object.keys(params).length
   ? await getBusinesses({ ...params, sort: 'plan' }).catch(() => [])
   : [];
