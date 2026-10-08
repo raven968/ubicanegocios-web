@@ -1,0 +1,214 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+import BusinessGrid from '../components/BusinessGrid.astro';
+import { getBusinessesPage, getCategories, PLANS } from '../lib/api';
+import { PROMO_CODE, SALES_PHONE, SALES_TEL, SALES_WHATSAPP } from '../lib/site';
+
+// Ejemplos reales del directorio: lo que un negocio va a obtener.
+const [examples, categories] = await Promise.all([
+  getBusinessesPage({ sort: 'plan', per_page: '3' }).catch(() => null),
+  getCategories().catch(() => []),
+]);
+const total = examples?.meta.total ?? 0;
+
+const steps = [
+  {
+    icon: 'simple-icons:whatsapp',
+    title: 'Escríbenos',
+    text: 'Mándanos un WhatsApp o llámanos. Te explicamos las opciones y resolvemos tus dudas.',
+  },
+  {
+    icon: 'lucide:image-plus',
+    title: 'Armamos tu perfil',
+    text: 'Publicamos tus fotos, descripción, ubicación, teléfono, WhatsApp y redes sociales.',
+  },
+  {
+    icon: 'lucide:message-circle',
+    title: 'Te contactan directo',
+    text: 'Los clientes te escriben o te llaman a ti. No somos intermediarios ni cobramos comisión.',
+  },
+];
+
+const benefits = [
+  { icon: 'lucide:search', text: 'Apareces cuando la gente busca lo que ofreces' },
+  { icon: 'lucide:images', text: 'Galería de fotos y videos de tus productos o servicios' },
+  { icon: 'simple-icons:whatsapp', text: 'Botón directo a tu WhatsApp y a tu teléfono' },
+  { icon: 'lucide:map-pin', text: 'Tu ubicación en el mapa y en las zonas donde das servicio' },
+  { icon: 'lucide:star', text: 'Reseñas de tus clientes que generan confianza' },
+  { icon: 'lucide:megaphone', text: 'Difusión en las campañas de UbicaNegocios' },
+];
+
+const audiences = [
+  'Restaurantes y comercios',
+  'Emprendedores desde casa',
+  'Profesionistas y oficios',
+  'Estéticas y barberías',
+  'Venta por catálogo o redes',
+  'Autos y propiedades',
+  'Hospedajes',
+  'Empresas',
+];
+---
+
+<Layout
+  title="Anuncia tu negocio en UbicaNegocios"
+  description="Haz que los clientes de Delicias y la región encuentren tu negocio. Perfil con fotos, ubicación y WhatsApp directo. Sin comisiones por venta."
+>
+  <!-- Hero -->
+  <section class="border-b border-stone-200 bg-white">
+    <div class="container-page grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[1.2fr_1fr]">
+      <div>
+        <p class="eyebrow text-leaf-700">Para dueños de negocio</p>
+        <h1 class="mt-3 text-[2rem] leading-[1.1] font-bold sm:text-display">
+          Que los clientes de tu ciudad <span class="text-brand-600">te encuentren</span>
+        </h1>
+        <p class="mt-4 max-w-xl text-lg text-stone-600">
+          Publica tu negocio en el directorio local de la región. Te contactan directo por WhatsApp o teléfono, sin
+          intermediarios y sin comisiones por tus ventas.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a href={SALES_WHATSAPP} target="_blank" rel="noopener noreferrer" class="btn btn-contact btn-lg">
+            <Icon name="simple-icons:whatsapp" class="h-5 w-5" />
+            Quiero anunciarme
+          </a>
+          <a href={SALES_TEL} class="btn btn-secondary btn-lg">
+            <Icon name="lucide:phone" class="h-5 w-5" />
+            {SALES_PHONE}
+          </a>
+        </div>
+        <p class="mt-5 inline-flex items-center gap-2 rounded-xl bg-leaf-50 px-3.5 py-2.5 text-sm text-leaf-800">
+          <Icon name="lucide:ticket-percent" class="h-4 w-4 shrink-0" />
+          <span>Menciona la palabra clave <strong class="font-semibold">{PROMO_CODE}</strong> y obtén 20% de descuento en tu primer pago.</span>
+        </p>
+      </div>
+
+      <div class="rounded-3xl border border-stone-200 bg-canvas p-6 sm:p-8">
+        <dl class="grid grid-cols-2 gap-6">
+          {
+            total > 0 && (
+              <div class="flex flex-col">
+                <dt class="text-sm text-stone-600">Negocios publicados</dt>
+                <dd class="order-first text-3xl font-bold text-stone-900">{total}</dd>
+              </div>
+            )
+          }
+          {
+            categories.length > 0 && (
+              <div class="flex flex-col">
+                <dt class="text-sm text-stone-600">Categorías</dt>
+                <dd class="order-first text-3xl font-bold text-stone-900">{categories.length}</dd>
+              </div>
+            )
+          }
+          <div class="flex flex-col">
+            <dt class="text-sm text-stone-600">Comisión por venta</dt>
+            <dd class="order-first text-3xl font-bold text-leaf-700">0%</dd>
+          </div>
+          <div class="flex flex-col">
+            <dt class="text-sm text-stone-600">Necesitas local</dt>
+            <dd class="order-first text-3xl font-bold text-stone-900">No</dd>
+          </div>
+        </dl>
+        <p class="mt-6 border-t border-stone-200 pt-5 text-sm text-stone-600">
+          Puedes anunciarte aunque vendas desde casa, por pedido, en redes sociales o apenas estés empezando.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cómo funciona -->
+  <section class="container-page mt-16" aria-labelledby="how-title">
+    <h2 id="how-title" class="text-2xl font-bold sm:text-3xl">Cómo funciona</h2>
+    <ol class="mt-8 grid gap-4 md:grid-cols-3">
+      {
+        steps.map((s, i) => (
+          <li class="card p-6">
+            <div class="flex items-center gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700">
+                <Icon name={s.icon} class="h-5 w-5" />
+              </span>
+              <span class="text-sm font-semibold text-stone-500">Paso {i + 1}</span>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold">{s.title}</h3>
+            <p class="mt-1.5 text-stone-600">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- Qué incluye -->
+  <section class="container-page mt-16 grid gap-10 lg:grid-cols-2" aria-labelledby="benefits-title">
+    <div>
+      <h2 id="benefits-title" class="text-2xl font-bold sm:text-3xl">Qué incluye tu perfil</h2>
+      <ul class="mt-6 space-y-4">
+        {
+          benefits.map((b) => (
+            <li class="flex items-start gap-3">
+              <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-leaf-50 text-leaf-700">
+                <Icon name={b.icon} class="h-4 w-4" />
+              </span>
+              <span class="pt-1.5 text-stone-700">{b.text}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div>
+      <h2 class="text-2xl font-bold sm:text-3xl">Para todo tipo de negocio</h2>
+      <ul class="mt-6 flex flex-wrap gap-2">
+        {audiences.map((a) => <li class="chip cursor-default hover:bg-white">{a}</li>)}
+      </ul>
+      <div class="card mt-8 p-6">
+        <h3 class="font-semibold">Membresías para cada etapa</h3>
+        <p class="mt-1 text-sm text-stone-600">
+          Desde un perfil básico hasta posiciones destacadas. Te compartimos opciones y precios por WhatsApp.
+        </p>
+        <ul class="mt-4 flex flex-wrap gap-2" aria-label="Planes disponibles">
+          {
+            Object.values(PLANS).map((p) => (
+              <li title={p.name}>
+                <img src={p.image} alt={p.name} width="256" height="256" loading="lazy" class="h-12 w-12 object-contain" />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {
+    examples && examples.data.length > 0 && (
+      <section class="container-page mt-16" aria-labelledby="examples-title">
+        <h2 id="examples-title" class="text-2xl font-bold sm:text-3xl">
+          Así se ven los negocios en UbicaNegocios
+        </h2>
+        <p class="mt-1 text-stone-600">Negocios reales del directorio.</p>
+        <div class="mt-6">
+          <BusinessGrid businesses={examples.data.slice(0, 3)} />
+        </div>
+      </section>
+    )
+  }
+
+  <!-- CTA final -->
+  <section class="container-page mt-16">
+    <div class="rounded-3xl bg-brand-900 px-6 py-10 text-center text-white sm:px-10 sm:py-14">
+      <h2 class="text-2xl font-bold text-white sm:text-3xl">¿Listo para que te encuentren?</h2>
+      <p class="mx-auto mt-2 max-w-lg text-brand-100">
+        Escríbenos y te ayudamos a publicar tu negocio. Menciona <strong class="text-white">{PROMO_CODE}</strong> para
+        tu 20% de descuento.
+      </p>
+      <div class="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+        <a href={SALES_WHATSAPP} target="_blank" rel="noopener noreferrer" class="btn btn-lg bg-white text-brand-900 hover:bg-brand-50">
+          <Icon name="simple-icons:whatsapp" class="h-5 w-5 text-leaf-700" />
+          Escribir por WhatsApp
+        </a>
+        <a href="/preguntas-frecuentes" class="btn btn-lg border border-white/30 text-white hover:bg-white/10">
+          Ver preguntas frecuentes
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

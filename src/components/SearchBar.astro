@@ -1,69 +1,98 @@
 ---
 import { Icon } from 'astro-icon/components';
 import type { Zone } from '../lib/api';
+import { groupZones } from '../lib/zones';
 
 interface Props {
   zones: Zone[];
   q?: string;
   zone?: string;
-  /** `hero` = píldora blanca sobre el degradado; `page` = versión compacta. */
+  /** Categoría activa: se conserva al buscar dentro de ella. */
+  category?: string;
+  /** `hero` = protagonista de la home; `page` = barra de resultados. */
   variant?: 'hero' | 'page';
+  autofocus?: boolean;
 }
 
-const { zones, q = '', zone = '', variant = 'page' } = Astro.props;
+const { zones, q = '', zone = '', category = '', variant = 'page', autofocus = false } = Astro.props;
 const isHero = variant === 'hero';
+const groups = groupZones(zones);
 ---
 
 <!--
-  En móvil el formulario se apila (flex-col-reverse): la fila de búsqueda queda
-  arriba con todo el ancho y el selector de zona baja como filtro secundario.
-  Desde `sm` vuelve a ser una sola píldora horizontal con la zona a la izquierda.
+  Móvil: los campos se apilan con altura táctil cómoda y el botón ocupa todo el ancho.
+  Desde `sm` es una sola barra: qué · dónde · buscar.
 -->
 <form
   action="/buscar"
   method="get"
-  class={`flex flex-col-reverse overflow-hidden rounded-2xl bg-white sm:flex-row sm:items-stretch sm:rounded-full ${
-    isHero ? 'p-1 shadow-lg ring-1 ring-black/5' : 'border border-gray-300'
-  }`}
+  role="search"
+  class:list={[
+    'flex flex-col gap-2 rounded-2xl bg-white p-2 sm:flex-row sm:items-stretch sm:gap-0 sm:p-1.5',
+    isHero ? 'shadow-[0_1px_2px_rgba(0,0,0,.04),0_8px_24px_-6px_rgba(0,0,0,.12)] ring-1 ring-stone-200' : 'border border-stone-300',
+  ]}
 >
-  {
-    zones.length > 0 && (
-      <label class="flex shrink-0 items-center border-t border-gray-200 px-3 text-gray-500 sm:border-r sm:border-t-0 sm:pl-3 sm:pr-1">
-        <Icon name="lucide:map-pin" class="mr-1 h-4 w-4 shrink-0 text-gray-400" />
-        <span class="sr-only">Zona</span>
-        <select
-          name="zona"
-          class="w-full cursor-pointer appearance-none bg-transparent py-2 pr-5 text-sm text-gray-700 focus:outline-none sm:max-w-[9rem]"
-        >
-          <option value="">Todas las zonas</option>
-          {zones.map((z) => (
-            <option value={z.slug} selected={z.slug === zone}>
-              {z.name}
-            </option>
-          ))}
-        </select>
-        <Icon name="lucide:chevron-down" class="pointer-events-none -ml-4 h-4 w-4 shrink-0 text-gray-400" />
-      </label>
-    )
-  }
+  {category && <input type="hidden" name="categoria" value={category} />}
 
-  <div class="flex min-w-0 flex-1 items-stretch">
+  <label class="relative flex min-w-0 flex-[1.4] items-center rounded-xl bg-stone-100 sm:bg-transparent">
+    <span class="sr-only">Qué buscas</span>
+    <Icon name="lucide:search" class="pointer-events-none absolute left-3.5 h-5 w-5 text-stone-400" />
     <input
       type="search"
       name="q"
       value={q}
-      placeholder="¿Qué buscas? Ej. tacos, plomero…"
-      class="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+      autofocus={autofocus}
+      enterkeyhint="search"
+      autocomplete="off"
+      placeholder="Tacos, plomero, estética…"
+      class:list={[
+        'h-12 w-full min-w-0 bg-transparent pr-3 pl-11 text-base text-stone-900 placeholder:text-stone-500 focus:outline-none',
+        isHero && 'sm:h-14',
+      ]}
     />
+  </label>
 
-    <button
-      aria-label="Buscar"
-      class={`flex shrink-0 items-center justify-center rounded-full px-3 py-2 text-sm font-medium text-white sm:px-6 ${
-        isHero ? 'bg-gray-900 hover:bg-gray-800' : 'bg-emerald-600 hover:bg-emerald-700'
-      }`}
-    >
-      <Icon name="lucide:search" class="h-5 w-5 sm:hidden" />
-      <span class="hidden sm:inline">Buscar</span>
-    </button>
-  </div>
+  {
+    zones.length > 0 && (
+      <label class="relative flex min-w-0 flex-1 items-center rounded-xl bg-stone-100 sm:border-l sm:border-stone-200 sm:bg-transparent sm:rounded-none">
+        <span class="sr-only">Dónde</span>
+        <Icon name="lucide:map-pin" class="pointer-events-none absolute left-3.5 h-5 w-5 text-stone-400" />
+        <select
+          name="zona"
+          class:list={[
+            'h-12 w-full min-w-0 cursor-pointer appearance-none truncate bg-transparent pr-9 pl-11 text-base text-stone-800 focus:outline-none',
+            isHero && 'sm:h-14',
+          ]}
+        >
+          <option value="">Toda la región</option>
+          {groups.map((g) =>
+            g.city ? (
+              <optgroup label={g.label}>
+                <option value={g.city.slug} selected={g.city.slug === zone}>
+                  Todo {g.label}
+                </option>
+                {g.sectors.map((s) => (
+                  <option value={s.slug} selected={s.slug === zone}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+            ) : (
+              g.sectors.map((s) => (
+                <option value={s.slug} selected={s.slug === zone}>
+                  {s.name}
+                </option>
+              ))
+            ),
+          )}
+        </select>
+        <Icon name="lucide:chevron-down" class="pointer-events-none absolute right-3 h-4 w-4 text-stone-400" />
+      </label>
+    )
+  }
+
+  <button class:list={['btn btn-primary', isHero ? 'btn-lg sm:min-h-14 sm:px-8' : 'min-h-12 sm:px-6']}>
+    <Icon name="lucide:search" class="h-4 w-4 sm:hidden" />
+    Buscar
+  </button>
 </form>

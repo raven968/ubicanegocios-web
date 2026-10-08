@@ -1,243 +1,314 @@
 ---
 import { Icon } from 'astro-icon/components';
 import Layout from '../../layouts/Layout.astro';
-import Stars from '../../components/Stars.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ContactCard from '../../components/ContactCard.astro';
 import Gallery from '../../components/Gallery.astro';
-import VideoCarousel from '../../components/VideoCarousel.astro';
 import PlanBadge from '../../components/PlanBadge.astro';
 import ReviewForm from '../../components/ReviewForm.astro';
-import { getBusiness } from '../../lib/api';
-import { renderDescription } from '../../lib/markdown';
+import ShareButton from '../../components/ShareButton.astro';
+import Stars from '../../components/Stars.astro';
+import VideoCarousel from '../../components/VideoCarousel.astro';
+import { getBusiness, PLANS } from '../../lib/api';
+import { contactActions } from '../../lib/contact';
+import { excerpt, renderDescription } from '../../lib/markdown';
+import { breadcrumbJsonLd, businessJsonLd } from '../../lib/seo';
+import { locationSummary } from '../../lib/zones';
 
 const { slug } = Astro.params;
 const business = await getBusiness(slug!);
 
 if (!business) {
-  return Astro.redirect('/');
+  return Astro.rewrite('/404');
 }
 
 const videos = business.videos ?? [];
 const reviews = business.reviews ?? [];
-type Social = { name: string; url: string; icon: string };
-const socials: Social[] = [];
-if (business.facebook) socials.push({ name: 'Facebook', url: business.facebook, icon: 'simple-icons:facebook' });
-if (business.instagram) socials.push({ name: 'Instagram', url: business.instagram, icon: 'simple-icons:instagram' });
-if (business.tiktok) socials.push({ name: 'TikTok', url: business.tiktok, icon: 'simple-icons:tiktok' });
-if (business.pinterest) socials.push({ name: 'Pinterest', url: business.pinterest, icon: 'simple-icons:pinterest' });
-if (business.website) socials.push({ name: 'Sitio web', url: business.website, icon: 'lucide:globe' });
+const category = business.categories[0];
+const location = locationSummary(business.zones ?? []);
+const { whatsapp, call, directions } = contactActions(business);
+const hasStickyBar = Boolean(whatsapp || call || directions);
 
-const hasContact = Boolean(
-  business.address || business.phone || business.phone2 || business.email || socials.length,
-);
 const mapSrc = business.address
-  ? `https://maps.google.com/maps?q=${encodeURIComponent(business.address)}&z=14&output=embed`
+  ? `https://maps.google.com/maps?q=${encodeURIComponent(business.address)}&z=15&output=embed`
   : null;
-const mapsLink = business.address
-  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`
-  : null;
-const waText = encodeURIComponent(`Hola, vi su negocio "${business.name}" en UbicaNegocios y me interesa más información.`);
-const phones = [
-  { value: business.phone, isWhatsapp: business.whatsapp_phone === 'phone' },
-  { value: business.phone2, isWhatsapp: business.whatsapp_phone === 'phone2' },
-].filter((p): p is { value: string; isWhatsapp: boolean } => Boolean(p.value));
+
+const crumbs = [
+  { href: '/', label: 'Inicio' },
+  ...(category ? [{ href: `/categoria/${category.slug}`, label: category.name }] : []),
+  { label: business.name },
+];
+const canonical = new URL(`/negocio/${business.slug}`, Astro.site).href;
+const metaDescription =
+  excerpt(business.description) ||
+  `${business.name}${category ? `, ${category.name.toLowerCase()}` : ''}${location ? ` en ${location}` : ''}. Contacto, ubicación, fotos y reseñas en UbicaNegocios.`;
+
+// Distribución de calificaciones para el resumen de reseñas.
+const distribution = [5, 4, 3, 2, 1].map((n) => ({
+  stars: n,
+  count: reviews.filter((r) => r.rating === n).length,
+}));
+const dateFmt = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 ---
 
-<Layout title={`${business.name} · UbicaNegocios`} description={business.description ?? ''}>
-  <nav class="mb-3 text-sm text-gray-500">
-    <a href="/" class="hover:underline">Inicio</a>
-    {
-      business.categories[0] && (
-        <>
-          {' / '}
-          <a href={`/categoria/${business.categories[0].slug}`} class="hover:underline">
-            {business.categories[0].name}
-          </a>
-        </>
-      )
-    }
-    {' / '}<span>{business.name}</span>
-  </nav>
+<Layout
+  title={`${business.name}${location ? ` en ${location}` : ''} · UbicaNegocios`}
+  description={metaDescription}
+  image={business.images[0]?.url}
+  canonicalPath={`/negocio/${business.slug}`}
+  jsonLd={[businessJsonLd(business, canonical), breadcrumbJsonLd(crumbs, Astro.site!)]}
+  bottomBar={hasStickyBar}
+>
+  <div class="container-page pt-4 sm:pt-6">
+    <Breadcrumbs items={crumbs} />
 
-  <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-3">
-      {business.plan && <PlanBadge plan={business.plan} size="lg" />}
-      <h1 class="text-3xl font-bold text-gray-900">{business.name}</h1>
-    </div>
-    {business.reviews_count > 0 && <Stars rating={business.average_rating} count={business.reviews_count} />}
-  </div>
-
-  {
-    business.categories.length > 0 && (
-      <div class="mb-6 flex flex-wrap gap-2">
-        {business.categories.map((c) => (
-          <a
-            href={`/categoria/${c.slug}`}
-            class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
-          >
-            {c.name}
-          </a>
-        ))}
-        {business.subcategories.map((s) => (
-          <span class="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">{s.name}</span>
-        ))}
-      </div>
-    )
-  }
-
-  <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-    <div class="lg:col-span-2">
-      <Gallery images={business.images} name={business.name} />
-
-      {
-        business.description && (
-          <div class="mt-6">
-            <h2 class="mb-2 text-lg font-semibold text-gray-900">Descripción</h2>
-            <div
-              class="space-y-2 text-gray-700 [&_a]:font-medium [&_a]:text-blue-600 [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
-              set:html={renderDescription(business.description)}
-            />
-          </div>
-        )
-      }
-
-      {
-        business.tags?.length > 0 && (
-          <div class="mt-4 flex flex-wrap gap-2">
-            {business.tags.map((t) => (
-              <span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">#{t}</span>
-            ))}
-          </div>
-        )
-      }
-    </div>
-
-    <div>
-      {videos.length > 0 && <VideoCarousel videos={videos} name={business.name} />}
-    </div>
-  </div>
-
-  {
-    hasContact && (
-      <section class="mt-10">
-        <h2 class="mb-4 text-xl font-bold text-gray-900">Contacto y ubicación</h2>
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div class="space-y-3 rounded-xl border border-gray-200 bg-white p-5">
-            {business.address && (
-              <div class="flex items-start gap-3">
-                <Icon name="lucide:map-pin" class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                <div>
-                  <p class="text-gray-800">{business.address}</p>
-                  {mapsLink && (
-                    <a
-                      href={mapsLink}
-                      target="_blank"
-                      rel="noopener"
-                      class="mt-1 inline-flex items-center gap-1 text-sm text-emerald-600 hover:underline"
-                    >
-                      Cómo llegar
-                      <Icon name="lucide:external-link" class="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-            {phones.map((p) =>
-              p.isWhatsapp ? (
-                <a
-                  href={`https://wa.me/${p.value.replace(/\D/g, '')}?text=${waText}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex items-center gap-3 text-gray-800 hover:text-emerald-600"
-                >
-                  <Icon name="simple-icons:whatsapp" class="h-5 w-5 shrink-0 text-green-600" />
-                  <span>
-                    {p.value}
-                    <span class="ml-1.5 text-xs font-medium text-green-600">WhatsApp</span>
-                  </span>
-                </a>
-              ) : (
-                <div class="flex items-center gap-3">
-                  <Icon name="lucide:phone" class="h-5 w-5 shrink-0 text-emerald-600" />
-                  <a href={`tel:${p.value.replace(/\s+/g, '')}`} class="text-gray-800 hover:text-emerald-600">
-                    {p.value}
-                  </a>
-                </div>
-              ),
-            )}
-            {business.email && (
-              <div class="flex items-center gap-3">
-                <Icon name="lucide:mail" class="h-5 w-5 shrink-0 text-emerald-600" />
-                <a href={`mailto:${business.email}`} class="text-gray-800 hover:text-emerald-600">
-                  {business.email}
-                </a>
-              </div>
-            )}
-            {socials.length > 0 && (
-              <div class="border-t border-gray-100 pt-3">
-                <p class="mb-2 text-sm font-medium text-gray-700">Síguenos</p>
-                <div class="flex flex-wrap gap-2">
-                  {socials.map((s) => (
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={s.name}
-                      aria-label={s.name}
-                      class="grid h-9 w-9 place-items-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-emerald-600 hover:text-white"
-                    >
-                      <Icon name={s.icon} class="h-4 w-4" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {mapSrc && (
-            <div class="overflow-hidden rounded-xl border border-gray-200">
-              <iframe
-                src={mapSrc}
-                title={`Ubicación de ${business.name}`}
-                class="h-72 w-full"
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                allowfullscreen
-              />
-            </div>
-          )}
-        </div>
-      </section>
-    )
-  }
-
-  <section class="mt-12">
-    <h2 class="mb-4 text-xl font-bold text-gray-900">
-      Reseñas {business.reviews_count > 0 && `(${business.reviews_count})`}
-    </h2>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <div class="space-y-3">
-        {
-          reviews.length > 0 ? (
-            reviews.map((r) => (
-              <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="flex items-center justify-between">
-                  <span class="font-medium text-gray-900">{r.author_name}</span>
-                  <Stars rating={r.rating} />
-                </div>
-                <p class="mt-1 text-gray-700">{r.body}</p>
-                <p class="mt-1 text-xs text-gray-400">
-                  {new Date(r.created_at).toLocaleDateString('es-MX')}
-                </p>
-              </div>
+    <!-- Encabezado: lo esencial para decidir de un vistazo. -->
+    <header class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          {
+            business.categories.map((c) => (
+              <a href={`/categoria/${c.slug}`} class="badge bg-brand-50 text-brand-800 hover:bg-brand-100">
+                {c.name}
+              </a>
             ))
+          }
+          {business.subcategories.map((s) => <span class="badge bg-stone-100 text-stone-700">{s.name}</span>)}
+        </div>
+        <h1 class="mt-2 text-[1.75rem] leading-tight font-bold sm:text-4xl">{business.name}</h1>
+        <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-stone-600">
+          {
+            business.reviews_count > 0 ? (
+              <a href="#resenas" class="inline-flex items-center gap-1.5 hover:underline">
+                <Stars rating={business.average_rating} variant="compact" />
+                <span>
+                  {business.reviews_count} {business.reviews_count === 1 ? 'reseña' : 'reseñas'}
+                </span>
+              </a>
+            ) : (
+              <a href="#resenas" class="hover:underline">
+                Sin reseñas aún
+              </a>
+            )
+          }
+          {
+            location && (
+              <span class="inline-flex items-center gap-1">
+                <Icon name="lucide:map-pin" class="h-4 w-4 text-stone-400" />
+                {location}
+              </span>
+            )
+          }
+          {
+            business.plan && PLANS[business.plan] && (
+              <span class="inline-flex items-center gap-1.5">
+                <PlanBadge plan={business.plan} size="sm" showName />
+              </span>
+            )
+          }
+        </div>
+      </div>
+      <ShareButton title={business.name} class="btn-sm hidden shrink-0 sm:inline-flex" />
+    </header>
+
+    <!--
+      Móvil: galería → contacto → descripción → ubicación → videos → reseñas.
+      Escritorio: el contacto vive en una columna fija a la derecha.
+    -->
+    <div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
+      <div class="min-w-0">
+        {
+          business.images.length > 0 ? (
+            <Gallery images={business.images} name={business.name} />
           ) : (
-            <p class="text-gray-500">Sé el primero en dejar una reseña.</p>
+            <div class="grid aspect-[16/10] place-items-center rounded-2xl bg-stone-100 text-stone-300">
+              <Icon name="lucide:store" class="h-12 w-12" />
+            </div>
           )
         }
       </div>
 
-      <ReviewForm slug={business.slug} />
+      <aside class="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <div class="space-y-4 lg:sticky lg:top-24">
+          <ContactCard business={business} />
+          <ShareButton title={business.name} class="w-full sm:hidden" />
+        </div>
+      </aside>
+
+      <div class="min-w-0 space-y-10">
+        {
+          business.description && (
+            <section aria-labelledby="about-title">
+              <h2 id="about-title" class="text-xl font-bold">
+                Acerca de {business.name}
+              </h2>
+              <div class="prose-desc mt-3" set:html={renderDescription(business.description)} />
+              {business.tags?.length > 0 && (
+                <ul class="mt-5 flex flex-wrap gap-2" aria-label="Etiquetas">
+                  {business.tags.map((t) => (
+                    <li>
+                      <a href={`/buscar?q=${encodeURIComponent(t)}`} class="chip min-h-8 text-[0.8125rem] text-stone-600">
+                        {t}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )
+        }
+
+        {
+          mapSrc && (
+            <section aria-labelledby="map-title">
+              <div class="flex items-end justify-between gap-4">
+                <h2 id="map-title" class="text-xl font-bold">
+                  Ubicación
+                </h2>
+                {directions && (
+                  <a href={directions} target="_blank" rel="noopener noreferrer" class="link inline-flex items-center gap-1 text-sm">
+                    Abrir en Maps
+                    <Icon name="lucide:arrow-up-right" class="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+              <p class="mt-1 text-sm text-stone-600">{business.address}</p>
+              <div class="mt-3 overflow-hidden rounded-2xl border border-stone-200 bg-stone-100">
+                <iframe
+                  src={mapSrc}
+                  title={`Mapa de ubicación de ${business.name}`}
+                  class="h-64 w-full sm:h-80"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  allowfullscreen
+                />
+              </div>
+            </section>
+          )
+        }
+
+        {
+          videos.length > 0 && (
+            <section aria-labelledby="videos-title">
+              <h2 id="videos-title" class="text-xl font-bold">
+                Videos
+              </h2>
+              <div class="mt-3">
+                <VideoCarousel videos={videos} name={business.name} />
+              </div>
+            </section>
+          )
+        }
+
+        <section id="resenas" aria-labelledby="reviews-title">
+          <h2 id="reviews-title" class="text-xl font-bold">
+            Reseñas
+          </h2>
+
+          {
+            business.reviews_count > 0 && (
+              <div class="card mt-4 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:gap-8">
+                <div class="text-center sm:w-32 sm:shrink-0">
+                  <p class="text-4xl font-bold text-stone-900">{business.average_rating.toFixed(1)}</p>
+                  <Stars rating={business.average_rating} class="mt-1" />
+                  <p class="mt-1 text-sm text-stone-600">
+                    {business.reviews_count} {business.reviews_count === 1 ? 'reseña' : 'reseñas'}
+                  </p>
+                </div>
+                <ul class="flex-1 space-y-1.5" aria-label="Distribución de calificaciones">
+                  {distribution.map((d) => (
+                    <li class="flex items-center gap-2 text-sm">
+                      <span class="w-3 text-stone-600">{d.stars}</span>
+                      <span class="h-2 flex-1 overflow-hidden rounded-full bg-stone-100">
+                        <span
+                          class="block h-full rounded-full bg-amber-400"
+                          style={`width: ${reviews.length ? (d.count / reviews.length) * 100 : 0}%`}
+                        />
+                      </span>
+                      <span class="w-6 text-right text-stone-500">{d.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+
+          <div class="mt-4 grid gap-6 xl:grid-cols-2">
+            <div>
+              {reviews.length > 0 ? (
+                <ul class="space-y-3">
+                  {reviews.map((r) => (
+                    <li class="card p-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                          <span
+                            class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-stone-100 text-sm font-semibold text-stone-700"
+                            aria-hidden="true"
+                          >
+                            {r.author_name.trim().charAt(0).toUpperCase()}
+                          </span>
+                          <div>
+                            <p class="font-semibold text-stone-900">{r.author_name}</p>
+                            <time class="text-xs text-stone-500" datetime={r.created_at}>
+                              {dateFmt.format(new Date(r.created_at))}
+                            </time>
+                          </div>
+                        </div>
+                        <Stars rating={r.rating} />
+                      </div>
+                      <p class="mt-3 text-[0.9375rem] leading-relaxed whitespace-pre-line text-stone-700">{r.body}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div class="rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
+                  <Icon name="lucide:message-square-heart" class="mx-auto h-8 w-8 text-stone-400" />
+                  <p class="mt-2 font-semibold text-stone-900">Aún no hay reseñas</p>
+                  <p class="mt-1 text-sm text-stone-600">¿Ya conoces este negocio? Sé la primera persona en opinar.</p>
+                </div>
+              )}
+            </div>
+            <ReviewForm slug={business.slug} />
+          </div>
+        </section>
+      </div>
     </div>
-  </section>
+  </div>
+
+  {
+    hasStickyBar && (
+      <div
+        class="fixed inset-x-0 bottom-0 z-20 border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_-8px_rgba(0,0,0,.15)] backdrop-blur-sm lg:hidden"
+        role="region"
+        aria-label="Acciones rápidas"
+      >
+        <div class="mx-auto flex max-w-md gap-2">
+          {whatsapp && (
+            <a href={whatsapp} target="_blank" rel="noopener noreferrer" class="btn btn-contact flex-1">
+              <Icon name="simple-icons:whatsapp" class="h-4 w-4" />
+              WhatsApp
+            </a>
+          )}
+          {call && (
+            <a href={call} class:list={['btn flex-1', whatsapp ? 'btn-secondary' : 'btn-contact']}>
+              <Icon name="lucide:phone" class="h-4 w-4" />
+              Llamar
+            </a>
+          )}
+          {directions && (
+            <a
+              href={directions}
+              target="_blank"
+              rel="noopener noreferrer"
+              class:list={['btn btn-secondary', whatsapp || call ? 'btn-icon' : 'flex-1']}
+              aria-label="Cómo llegar"
+            >
+              <Icon name="lucide:navigation" class="h-4 w-4" />
+              {!(whatsapp || call) && 'Cómo llegar'}
+            </a>
+          )}
+        </div>
+      </div>
+    )
+  }
 </Layout>

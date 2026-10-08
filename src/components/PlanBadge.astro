@@ -11,27 +11,25 @@ const { plan, size = 'md', showName = false } = Astro.props;
 const info = PLANS[plan];
 
 const sizeClass = {
-  sm: 'h-10 w-10',
-  md: 'h-14 w-14',
-  lg: 'h-20 w-20',
+  sm: 'h-7 w-7 sm:h-9 sm:w-9',
+  md: 'h-12 w-12',
+  lg: 'h-16 w-16',
 }[size];
 ---
 
 {
   info && (
-    <span
-      class="inline-flex items-center gap-2"
-      title={info.name}
-      aria-label={`Plan ${info.name}`}
-    >
+    <span class="inline-flex items-center gap-2" title={info.name}>
       <img
         src={info.image}
-        alt={info.name}
-        class={`${sizeClass} object-contain drop-shadow`}
+        alt={showName ? '' : `Plan ${info.name}`}
+        width="256"
+        height="256"
+        loading="lazy"
+        decoding="async"
+        class={`${sizeClass} object-contain drop-shadow-sm`}
       />
-      {showName && (
-        <span class="text-sm font-medium text-gray-700">{info.name}</span>
-      )}
+      {showName && <span class="text-sm font-medium text-stone-700">{info.name}</span>}
     </span>
   )
 }

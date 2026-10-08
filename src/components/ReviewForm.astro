@@ -1,109 +1,135 @@
 ---
+import { Icon } from 'astro-icon/components';
+
 interface Props {
   slug: string;
 }
 const { slug } = Astro.props;
 const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+const labels = ['Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
 ---
 
-<form
-  id="review-form"
-  data-slug={slug}
-  data-api={apiUrl}
-  class="rounded-xl border border-gray-200 bg-white p-5"
->
-  <h3 class="mb-3 font-semibold text-gray-900">Deja tu reseña</h3>
+<form id="review-form" data-slug={slug} data-api={apiUrl} class="card p-5 sm:p-6" novalidate>
+  <h3 class="text-lg font-semibold">Deja tu reseña</h3>
+  <p class="mt-1 text-sm text-stone-600">Tu opinión ayuda a otras personas de la región a decidir.</p>
 
-  <div id="star-picker" class="mb-3 flex gap-1 text-2xl text-gray-300" role="radiogroup">
-    {[1, 2, 3, 4, 5].map((n) => (
-      <button type="button" class="star" data-value={n} aria-label={`${n} estrellas`}>
-        ★
-      </button>
-    ))}
+  <!--
+    Estrellas = radios reales: funcionan con teclado (flechas) y lectores de pantalla.
+    Se pintan en orden inverso para que `~` ilumine las anteriores.
+  -->
+  <fieldset class="mt-5">
+    <legend class="label">Calificación</legend>
+    <div class="star-picker flex flex-row-reverse justify-end gap-1">
+      {
+        [5, 4, 3, 2, 1].map((n) => (
+          <>
+            <input type="radio" name="rating" id={`rating-${n}`} value={n} class="peer sr-only" required />
+            <label
+              for={`rating-${n}`}
+              class="cursor-pointer rounded-md p-0.5 text-stone-300 transition"
+              title={labels[n - 1]}
+            >
+              <Icon name="lucide:star" class="h-8 w-8 fill-current" />
+              <span class="sr-only">
+                {n} {n === 1 ? 'estrella' : 'estrellas'}, {labels[n - 1]}
+              </span>
+            </label>
+          </>
+        ))
+      }
+    </div>
+  </fieldset>
+
+  <div class="mt-4">
+    <label for="review-name" class="label">Tu nombre</label>
+    <input id="review-name" name="author_name" required maxlength="80" autocomplete="name" class="field" />
   </div>
-  <input type="hidden" name="rating" id="rating-input" value="0" />
 
-  <input
-    name="author_name"
-    placeholder="Tu nombre"
-    required
-    maxlength="80"
-    class="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-  />
-  <textarea
-    name="body"
-    placeholder="Cuéntanos tu experiencia…"
-    required
-    maxlength="2000"
-    rows="3"
-    class="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-  ></textarea>
+  <div class="mt-4">
+    <label for="review-body" class="label">Tu experiencia</label>
+    <textarea
+      id="review-body"
+      name="body"
+      required
+      maxlength="2000"
+      rows="4"
+      placeholder="¿Qué te gustó? ¿Lo recomendarías?"
+      class="field py-2.5"></textarea>
+  </div>
 
-  <p id="review-msg" class="mb-3 hidden text-sm"></p>
+  <p id="review-msg" class="mt-4 hidden rounded-xl px-3.5 py-2.5 text-sm" role="status" aria-live="polite"></p>
 
-  <button
-    type="submit"
-    class="rounded-md bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-  >
-    Enviar reseña
+  <button type="submit" class="btn btn-primary mt-5 w-full sm:w-auto">
+    <Icon name="lucide:loader-circle" class="hidden h-4 w-4 animate-spin" data-spinner />
+    <span data-label>Publicar reseña</span>
   </button>
 </form>
+
+<style>
+  .star-picker label:hover,
+  .star-picker label:hover ~ label,
+  .star-picker input:checked + label,
+  .star-picker input:checked + label ~ label {
+    color: var(--color-amber-400, #fbbf24);
+  }
+  .star-picker input:focus-visible + label {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+</style>
 
 <script>
   const form = document.getElementById('review-form') as HTMLFormElement | null;
   if (form) {
-    const ratingInput = document.getElementById('rating-input') as HTMLInputElement;
-    const stars = Array.from(document.querySelectorAll<HTMLElement>('#star-picker .star'));
     const msg = document.getElementById('review-msg') as HTMLElement;
-
-    const paint = (value: number) => {
-      stars.forEach((s, i) => {
-        s.classList.toggle('text-amber-500', i < value);
-        s.classList.toggle('text-gray-300', i >= value);
-      });
-    };
-    stars.forEach((s) => {
-      s.addEventListener('click', () => {
-        const v = Number(s.dataset.value);
-        ratingInput.value = String(v);
-        paint(v);
-      });
-    });
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const spinner = button.querySelector('[data-spinner]')!;
+    const label = button.querySelector('[data-label]')!;
 
     const showMsg = (text: string, ok: boolean) => {
       msg.textContent = text;
-      msg.className = `mb-3 text-sm ${ok ? 'text-emerald-600' : 'text-red-600'}`;
+      msg.className = `mt-4 rounded-xl px-3.5 py-2.5 text-sm ${ok ? 'bg-leaf-50 text-leaf-800' : 'bg-red-50 text-red-700'}`;
+    };
+
+    const setBusy = (busy: boolean) => {
+      button.disabled = busy;
+      spinner.classList.toggle('hidden', !busy);
+      label.textContent = busy ? 'Enviando…' : 'Publicar reseña';
     };
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const rating = Number(ratingInput.value);
-      if (rating < 1) {
-        showMsg('Selecciona una calificación.', false);
-        return;
-      }
       const data = new FormData(form);
-      const payload = {
-        author_name: data.get('author_name'),
-        body: data.get('body'),
-        rating,
-      };
-      const res = await fetch(`${form.dataset.api}/businesses/${form.dataset.slug}/reviews`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        showMsg('¡Gracias por tu reseña!', true);
-        form.reset();
-        paint(0);
-        ratingInput.value = '0';
-        setTimeout(() => location.reload(), 1200);
-      } else if (res.status === 429) {
-        showMsg('Has enviado demasiadas reseñas. Intenta más tarde.', false);
-      } else {
-        showMsg('No se pudo enviar la reseña. Revisa los campos.', false);
+      const rating = Number(data.get('rating'));
+      const name = String(data.get('author_name') ?? '').trim();
+      const body = String(data.get('body') ?? '').trim();
+
+      if (!rating) return showMsg('Elige una calificación de 1 a 5 estrellas.', false);
+      if (!name || !body) return showMsg('Escribe tu nombre y tu experiencia.', false);
+
+      setBusy(true);
+      try {
+        const res = await fetch(`${form.dataset.api}/businesses/${form.dataset.slug}/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ author_name: name, body, rating }),
+        });
+        if (res.ok) {
+          showMsg('¡Gracias por tu reseña! La estamos publicando…', true);
+          form.reset();
+          setTimeout(() => location.reload(), 1200);
+          return;
+        }
+        showMsg(
+          res.status === 429
+            ? 'Has enviado demasiadas reseñas. Intenta más tarde.'
+            : 'No se pudo enviar la reseña. Revisa los campos.',
+          false,
+        );
+      } catch {
+        showMsg('Sin conexión. Revisa tu internet e intenta de nuevo.', false);
       }
+      setBusy(false);
     });
   }
 </script>

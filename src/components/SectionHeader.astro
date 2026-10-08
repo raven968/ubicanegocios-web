@@ -1,0 +1,27 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  id?: string;
+  title: string;
+  subtitle?: string;
+  href?: string;
+  linkLabel?: string;
+}
+const { id, title, subtitle, href, linkLabel = 'Ver todo' } = Astro.props;
+---
+
+<div class="mb-5 flex items-end justify-between gap-4">
+  <div>
+    <h2 id={id} class="text-xl font-bold sm:text-2xl">{title}</h2>
+    {subtitle && <p class="mt-1 text-sm text-stone-600">{subtitle}</p>}
+  </div>
+  {
+    href && (
+      <a href={href} class="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-700 hover:underline">
+        {linkLabel}
+        <Icon name="lucide:arrow-right" class="h-4 w-4" />
+      </a>
+    )
+  }
+</div>

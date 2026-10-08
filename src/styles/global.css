@@ -1,6 +1,203 @@
+@import '@fontsource-variable/figtree/wght.css';
 @import 'tailwindcss';
 
-/* Safari/iOS aún dibuja el triángulo nativo del <details> pese a `list-none`. */
-summary::-webkit-details-marker {
-  display: none;
+/*
+ * Sistema de diseño de UbicaNegocios.
+ *
+ * Reglas de color (salen del logo):
+ *   - brand (azul)  → buscar, navegar, enlaces, foco.
+ *   - leaf (verde)  → contactar: WhatsApp, llamar, estados positivos.
+ *   - amber         → solo calificaciones.
+ *   - stone (cálido)→ todo lo demás: texto, bordes, superficies.
+ *
+ * Radios: controles (botones, inputs) = xl · tarjetas = 2xl · chips/badges = full.
+ * Sombras: solo en hover de tarjetas y en elementos flotantes (barra fija, diálogo).
+ */
+@theme {
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9eaff;
+  --color-brand-200: #b5d5fc;
+  --color-brand-300: #85b8f5;
+  --color-brand-400: #4b93e8;
+  --color-brand-500: #1e76dc;
+  --color-brand-600: #0167d2;
+  --color-brand-700: #0152a8;
+  --color-brand-800: #064489;
+  --color-brand-900: #0b3a70;
+
+  --color-leaf-50: #ecfbef;
+  --color-leaf-100: #d2f5d9;
+  --color-leaf-200: #a6e9b4;
+  --color-leaf-500: #13a632;
+  --color-leaf-600: #00901b;
+  --color-leaf-700: #00751a;
+  --color-leaf-800: #065c19;
+
+  --color-canvas: #f7f7f5;
+
+  --text-display: 2.75rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.03em;
+
+  --animate-fade-up: fade-up 0.35s ease-out both;
+  --animate-nudge: nudge 1.6s ease-in-out infinite;
+
+  @keyframes nudge {
+    0%,
+    100% {
+      transform: translateY(-1px);
+    }
+    50% {
+      transform: translateY(2px);
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-padding-top: 5rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    @apply bg-canvas font-sans text-stone-800 antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight text-stone-900 text-balance;
+  }
+
+  :focus-visible {
+    @apply rounded-sm outline-2 outline-offset-2 outline-brand-600;
+  }
+
+  /* Safari/iOS aún dibuja el triángulo nativo del <details> pese a `list-none`. */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  /* Botones: altura mínima de 44px para touch. */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 select-none disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply min-h-9 rounded-lg px-3 text-[0.8125rem];
+  }
+  .btn-lg {
+    @apply min-h-12 px-6 text-base;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800;
+  }
+  .btn-contact {
+    @apply bg-leaf-700 text-white hover:bg-leaf-800;
+  }
+  .btn-secondary {
+    @apply border border-stone-300 bg-white text-stone-800 hover:border-stone-400 hover:bg-stone-50 active:bg-stone-100;
+  }
+  .btn-ghost {
+    @apply text-stone-700 hover:bg-stone-100 hover:text-stone-900;
+  }
+  .btn-icon {
+    @apply min-w-11 px-0;
+  }
+
+  .field {
+    @apply block w-full min-h-11 rounded-xl border border-stone-300 bg-white px-3.5 text-[0.9375rem] text-stone-900 transition-colors placeholder:text-stone-400 hover:border-stone-400 focus:border-brand-600 focus:ring-3 focus:ring-brand-100 focus:outline-none aria-invalid:border-red-500;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-stone-700;
+  }
+
+  .chip {
+    @apply inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3.5 text-sm font-medium whitespace-nowrap text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50;
+  }
+  .chip[aria-current='page'],
+  .chip[aria-pressed='true'] {
+    @apply border-stone-900 bg-stone-900 text-white hover:bg-stone-800;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-white;
+  }
+
+  .link {
+    @apply font-medium text-brand-700 underline-offset-2 hover:underline;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold tracking-wider text-stone-500 uppercase;
+  }
+
+  /* Carrusel horizontal en móvil sin barra visible; el contenido sigue accesible con teclado/scroll. */
+  .scroller {
+    @apply -mx-4 flex snap-x gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6;
+    scrollbar-width: none;
+  }
+  .scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-stone-200/70;
+  }
+
+  /* Texto enriquecido de la descripción del negocio (markdown saneado). */
+  .prose-desc {
+    @apply space-y-3 text-[0.9375rem] leading-relaxed text-stone-700;
+  }
+  .prose-desc a {
+    @apply font-medium text-brand-700 underline underline-offset-2;
+  }
+  .prose-desc ul {
+    @apply list-disc space-y-1 pl-5;
+  }
+  .prose-desc ol {
+    @apply list-decimal space-y-1 pl-5;
+  }
+  .prose-desc strong,
+  .prose-desc b {
+    @apply font-semibold text-stone-900;
+  }
 }

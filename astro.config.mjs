@@ -8,6 +8,7 @@ import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://www.ubicanegocios.com',
   output: 'server',
   adapter: vercel(),
   server: { port: 4321 },

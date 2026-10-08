@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import type { BusinessImage } from '../lib/api';
 
 interface Props {
@@ -9,155 +10,210 @@ const { images, name } = Astro.props;
 const hasMany = images.length > 1;
 ---
 
+<!--
+  Carrusel con scroll-snap nativo: swipe en móvil sin librerías. Las imágenes se
+  muestran completas (object-contain): muchos negocios suben flyers y recortarlos
+  esconde información. El fondo difuminado evita bandas vacías.
+-->
 {
   images.length > 0 && (
-    <div class="gallery" data-count={images.length}>
-      {/* Main viewer */}
-      <div class="relative overflow-hidden rounded-xl bg-gray-100">
-        <button
-          type="button"
-          id="gallery-open"
-          class="block aspect-video w-full"
-          aria-label="Ampliar imagen"
+    <div class="gallery" data-gallery>
+      <div class="relative overflow-hidden rounded-2xl bg-stone-900">
+        <ul
+          class="flex aspect-[4/3] snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] sm:aspect-[16/10] [&::-webkit-scrollbar]:hidden"
+          data-track
+          aria-label={`Fotos de ${name}`}
         >
-          <img
-            id="gallery-main"
-            src={images[0].url}
-            alt={name}
-            class="h-full w-full object-cover"
-          />
-        </button>
+          {images.map((img, i) => (
+            <li class="relative h-full w-full shrink-0 snap-center snap-always" aria-label={`Foto ${i + 1} de ${images.length}`}>
+              <img
+                src={img.url}
+                alt=""
+                aria-hidden="true"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                class="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-2xl"
+              />
+              <button type="button" class="relative block h-full w-full cursor-zoom-in" data-open={i} aria-label="Ampliar foto">
+                <img
+                  src={img.url}
+                  alt={i === 0 ? name : `${name}, foto ${i + 1}`}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={i === 0 ? 'high' : 'auto'}
+                  decoding="async"
+                  class="h-full w-full object-contain"
+                />
+              </button>
+            </li>
+          ))}
+        </ul>
 
         {hasMany && (
           <>
             <button
               type="button"
-              class="gallery-nav absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-xl text-white hover:bg-black/70"
-              data-dir="-1"
-              aria-label="Anterior"
+              data-step="-1"
+              class="absolute top-1/2 left-3 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-stone-900 shadow transition hover:bg-white sm:grid"
+              aria-label="Foto anterior"
             >
-              &#8249;
+              <Icon name="lucide:chevron-left" class="h-5 w-5" />
             </button>
             <button
               type="button"
-              class="gallery-nav absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-xl text-white hover:bg-black/70"
-              data-dir="1"
-              aria-label="Siguiente"
+              data-step="1"
+              class="absolute top-1/2 right-3 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-stone-900 shadow transition hover:bg-white sm:grid"
+              aria-label="Foto siguiente"
             >
-              &#8250;
+              <Icon name="lucide:chevron-right" class="h-5 w-5" />
             </button>
-            <div
-              id="gallery-counter"
-              class="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
-            >
-              1 / {images.length}
-            </div>
           </>
         )}
+
+        <span
+          class="pointer-events-none absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-xs font-medium text-white"
+        >
+          <Icon name="lucide:images" class="h-3.5 w-3.5" />
+          <span data-counter>1</span> / {images.length}
+        </span>
       </div>
 
-      {/* Thumbnail strip */}
       {hasMany && (
-        <div class="mt-2 flex gap-2 overflow-x-auto pb-1">
+        <ul class="scroller mt-2 sm:mx-0 sm:px-0" aria-label="Miniaturas">
           {images.map((img, i) => (
-            <button
-              type="button"
-              class="gallery-thumb shrink-0 overflow-hidden rounded-md border-2 border-transparent transition data-[active=true]:border-emerald-500"
-              data-index={i}
-              data-src={img.url}
-              data-active={i === 0 ? 'true' : 'false'}
-              aria-label={`Ver imagen ${i + 1}`}
-            >
-              <img
-                src={img.url}
-                alt={`${name} ${i + 1}`}
-                loading="lazy"
-                class="h-16 w-24 object-cover"
-              />
-            </button>
+            <li class="shrink-0">
+              <button
+                type="button"
+                data-thumb={i}
+                aria-current={i === 0 ? 'true' : undefined}
+                class="block overflow-hidden rounded-lg opacity-60 ring-2 ring-transparent transition hover:opacity-100 aria-[current=true]:opacity-100 aria-[current=true]:ring-brand-600"
+                aria-label={`Ver foto ${i + 1}`}
+              >
+                <img src={img.url} alt="" loading="lazy" decoding="async" class="h-14 w-20 object-cover sm:h-16 sm:w-24" />
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
+
+      <dialog
+        data-lightbox
+        class="m-0 h-dvh max-h-none w-screen max-w-none bg-black/95 p-0 text-white backdrop:bg-black/80"
+        aria-label={`Fotos de ${name}`}
+      >
+        <div class="flex h-full flex-col">
+          <div class="flex items-center justify-between p-3">
+            <span class="text-sm text-white/80">
+              <span data-lb-counter>1</span> / {images.length}
+            </span>
+            <button type="button" data-close class="grid h-11 w-11 place-items-center rounded-full hover:bg-white/10" aria-label="Cerrar">
+              <Icon name="lucide:x" class="h-6 w-6" />
+            </button>
+          </div>
+          <div class="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-6">
+            <img data-lb-img src={images[0].url} alt="" class="max-h-full max-w-full object-contain" />
+            {hasMany && (
+              <>
+                <button
+                  type="button"
+                  data-lb-step="-1"
+                  class="absolute left-2 grid h-12 w-12 place-items-center rounded-full bg-white/10 hover:bg-white/20"
+                  aria-label="Foto anterior"
+                >
+                  <Icon name="lucide:chevron-left" class="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  data-lb-step="1"
+                  class="absolute right-2 grid h-12 w-12 place-items-center rounded-full bg-white/10 hover:bg-white/20"
+                  aria-label="Foto siguiente"
+                >
+                  <Icon name="lucide:chevron-right" class="h-6 w-6" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </dialog>
     </div>
   )
 }
 
-{/* Lightbox overlay */}
-<div
-  id="lightbox"
-  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4"
->
-  <button id="lightbox-close" class="absolute right-4 top-4 text-3xl text-white" aria-label="Cerrar">&times;</button>
-  <button id="lightbox-prev" class="absolute left-4 text-4xl text-white" aria-label="Anterior">&#8249;</button>
-  <img id="lightbox-img" src="" alt="" class="max-h-[85vh] max-w-full rounded-lg" />
-  <button id="lightbox-next" class="absolute right-4 text-4xl text-white" aria-label="Siguiente">&#8250;</button>
-</div>
-
 <script>
-  const thumbs = Array.from(document.querySelectorAll<HTMLElement>('.gallery-thumb'));
-  const srcs = thumbs.length
-    ? thumbs.map((el) => el.dataset.src as string)
-    : (() => {
-        const main = document.getElementById('gallery-main') as HTMLImageElement | null;
-        return main ? [main.src] : [];
-      })();
+  const root = document.querySelector<HTMLElement>('[data-gallery]');
+  if (root) {
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const slides = Array.from(track.children) as HTMLElement[];
+    const thumbs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-thumb]'));
+    const counter = root.querySelector('[data-counter]');
+    const dialog = root.querySelector<HTMLDialogElement>('[data-lightbox]')!;
+    const lbImg = dialog.querySelector<HTMLImageElement>('[data-lb-img]')!;
+    const lbCounter = dialog.querySelector('[data-lb-counter]');
+    const srcs = slides.map((s) => s.querySelector<HTMLImageElement>('button img')!.src);
+    let current = 0;
 
-  const main = document.getElementById('gallery-main') as HTMLImageElement | null;
-  const counter = document.getElementById('gallery-counter');
-  const box = document.getElementById('lightbox')!;
-  const lightImg = document.getElementById('lightbox-img') as HTMLImageElement;
-  let current = 0;
+    const setCurrent = (i: number) => {
+      current = i;
+      if (counter) counter.textContent = String(i + 1);
+      thumbs.forEach((t, idx) => {
+        if (idx === i) {
+          t.setAttribute('aria-current', 'true');
+          t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        } else t.removeAttribute('aria-current');
+      });
+    };
 
-  function showInGallery(i: number) {
-    if (srcs.length === 0) return;
-    current = (i + srcs.length) % srcs.length;
-    if (main) main.src = srcs[current];
-    if (counter) counter.textContent = `${current + 1} / ${srcs.length}`;
-    thumbs.forEach((t, idx) => (t.dataset.active = idx === current ? 'true' : 'false'));
-  }
+    const goTo = (i: number) => {
+      const next = (i + slides.length) % slides.length;
+      track.scrollTo({ left: next * track.clientWidth, behavior: 'smooth' });
+    };
 
-  function openLightbox() {
-    if (srcs.length === 0) return;
-    lightImg.src = srcs[current];
-    box.classList.remove('hidden');
-    box.classList.add('flex');
-  }
-  function closeLightbox() {
-    box.classList.add('hidden');
-    box.classList.remove('flex');
-  }
-  function stepLightbox(d: number) {
-    current = (current + d + srcs.length) % srcs.length;
-    lightImg.src = srcs[current];
-    // Keep the main gallery in sync.
-    if (main) main.src = srcs[current];
-    if (counter) counter.textContent = `${current + 1} / ${srcs.length}`;
-    thumbs.forEach((t, idx) => (t.dataset.active = idx === current ? 'true' : 'false'));
-  }
+    // El índice visible sale del scroll (cubre swipe, flechas y teclado).
+    let raf = 0;
+    track.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const i = Math.round(track.scrollLeft / track.clientWidth);
+          if (i !== current) setCurrent(i);
+        });
+      },
+      { passive: true },
+    );
 
-  // Carousel controls
-  document.querySelectorAll<HTMLElement>('.gallery-nav').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      showInGallery(current + Number(btn.dataset.dir));
+    root.querySelectorAll<HTMLElement>('[data-step]').forEach((btn) =>
+      btn.addEventListener('click', () => goTo(current + Number(btn.dataset.step))),
+    );
+    thumbs.forEach((t) => t.addEventListener('click', () => goTo(Number(t.dataset.thumb))));
+
+    const showInLightbox = (i: number) => {
+      const next = (i + srcs.length) % srcs.length;
+      lbImg.src = srcs[next];
+      if (lbCounter) lbCounter.textContent = String(next + 1);
+      current = next;
+    };
+
+    root.querySelectorAll<HTMLElement>('[data-open]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        showInLightbox(Number(btn.dataset.open));
+        dialog.showModal();
+      }),
+    );
+    dialog.querySelectorAll<HTMLElement>('[data-lb-step]').forEach((btn) =>
+      btn.addEventListener('click', () => showInLightbox(current + Number(btn.dataset.lbStep))),
+    );
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
     });
-  });
-  thumbs.forEach((t) =>
-    t.addEventListener('click', () => showInGallery(Number(t.dataset.index))),
-  );
-  document.getElementById('gallery-open')?.addEventListener('click', openLightbox);
-
-  // Lightbox controls
-  document.getElementById('lightbox-close')?.addEventListener('click', closeLightbox);
-  document.getElementById('lightbox-next')?.addEventListener('click', () => stepLightbox(1));
-  document.getElementById('lightbox-prev')?.addEventListener('click', () => stepLightbox(-1));
-  box.addEventListener('click', (e) => {
-    if (e.target === box) closeLightbox();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (box.classList.contains('hidden')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowRight') stepLightbox(1);
-    if (e.key === 'ArrowLeft') stepLightbox(-1);
-  });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') showInLightbox(current + 1);
+      if (e.key === 'ArrowLeft') showInLightbox(current - 1);
+    });
+    // Al cerrar, el carrusel queda en la foto que se estaba viendo.
+    dialog.addEventListener('close', () => {
+      track.scrollTo({ left: current * track.clientWidth });
+      setCurrent(current);
+    });
+  }
 </script>

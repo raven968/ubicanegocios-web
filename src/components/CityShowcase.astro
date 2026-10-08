@@ -1,0 +1,194 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { Zone } from '../lib/api';
+import { cityPhoto } from '../lib/cities';
+import { zoneLabel } from '../lib/zones';
+
+interface Props {
+  cities: Zone[];
+}
+
+// Las ciudades con más negocios van primero y más grandes.
+const cities = [...Astro.props.cities].sort((a, b) => b.businesses_count - a.businesses_count);
+const featured = cities.slice(0, 3);
+const rest = cities.slice(3);
+
+const items = (list: Zone[]) =>
+  list.map((zone) => ({
+    zone,
+    label: zoneLabel(zone),
+    photo: cityPhoto(zone),
+    href: `/buscar?zona=${zone.slug}`,
+    count: `${zone.businesses_count} ${zone.businesses_count === 1 ? 'negocio' : 'negocios'}`,
+  }));
+
+const credits = cities.map((z) => cityPhoto(z)).filter((p) => p !== null);
+---
+
+<!--
+  Mosaico: la ciudad principal ocupa el bloque grande, las dos siguientes se
+  apilan a su lado y el resto va en una fila de tarjetas más pequeñas.
+  Móvil: la primera a lo ancho y el resto en dos columnas.
+-->
+<div class="space-y-3 sm:space-y-4">
+  <ul class="grid grid-cols-2 gap-3 sm:gap-4 lg:h-[26rem] lg:grid-cols-4 lg:grid-rows-2">
+    {
+      items(featured).map((c, i) => (
+        <li class:list={[i === 0 ? 'col-span-2 lg:row-span-2' : 'lg:col-span-2']}>
+          <a
+            href={c.href}
+            class:list={[
+              'city-card group',
+              i === 0 ? 'aspect-[16/10] sm:aspect-[2/1] lg:aspect-auto' : 'aspect-[4/3] sm:aspect-[2/1] lg:aspect-auto',
+            ]}
+          >
+            {c.photo ? (
+              <img
+                src={`/ciudades/${c.photo.key}-1200.webp`}
+                srcset={`/ciudades/${c.photo.key}-640.webp 640w, /ciudades/${c.photo.key}-1200.webp 1200w`}
+                sizes={i === 0 ? '(min-width: 1024px) 560px, 100vw' : '(min-width: 1024px) 560px, 50vw'}
+                alt={c.photo.alt}
+                width="1200"
+                height="675"
+                loading="lazy"
+                decoding="async"
+                class="city-card__img"
+                style={c.photo.position && `object-position: ${c.photo.position}`}
+              />
+            ) : (
+              <span class="city-card__fallback" aria-hidden="true" />
+            )}
+            <span class="city-card__shade" aria-hidden="true" />
+            <span class="relative flex h-full flex-col justify-end p-4 sm:p-6">
+              <span
+                class:list={[
+                  'font-bold tracking-tight text-white drop-shadow-sm',
+                  i === 0 ? 'text-3xl sm:text-5xl' : 'text-xl sm:text-3xl',
+                ]}
+              >
+                {c.label}
+              </span>
+              <span class="mt-1 flex items-center justify-between gap-2 text-sm font-medium text-white/90 sm:text-base">
+                {c.count}
+                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition group-hover:bg-white group-hover:text-stone-900">
+                  <Icon name="lucide:arrow-right" class="h-4 w-4" />
+                </span>
+              </span>
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  {
+    rest.length > 0 && (
+      <ul class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+        {items(rest).map((c, i) => (
+          // Con un número impar, la última tarjeta ocupa la fila completa en móvil/tablet.
+          <li class:list={[rest.length % 2 === 1 && i === rest.length - 1 && 'col-span-2 lg:col-span-1']}>
+            <a
+              href={c.href}
+              class:list={[
+                'city-card group',
+                rest.length % 2 === 1 && i === rest.length - 1 ? 'aspect-[2/1] lg:aspect-[3/2]' : 'aspect-[4/3] sm:aspect-[3/2]',
+              ]}
+            >
+              {c.photo ? (
+                <img
+                  src={`/ciudades/${c.photo.key}-640.webp`}
+                  alt={c.photo.alt}
+                  width="640"
+                  height="360"
+                  loading="lazy"
+                  decoding="async"
+                  class="city-card__img"
+                  style={c.photo.position && `object-position: ${c.photo.position}`}
+                />
+              ) : (
+                <span class="city-card__fallback" aria-hidden="true" />
+              )}
+              <span class="city-card__shade" aria-hidden="true" />
+              <span class="relative flex h-full flex-col justify-end p-4">
+                <span class="text-lg font-bold tracking-tight text-white drop-shadow-sm">{c.label}</span>
+                <span class="text-sm text-white/85">{c.count}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {
+    credits.length > 0 && (
+      <details class="text-xs text-stone-500">
+        <summary class="inline-flex cursor-pointer list-none items-center gap-1 hover:text-stone-700">
+          <Icon name="lucide:camera" class="h-3.5 w-3.5" />
+          Créditos de las fotos
+        </summary>
+        <ul class="mt-2 space-y-1">
+          {credits.map((p) => (
+            <li>
+              <a href={p.source} target="_blank" rel="noopener noreferrer" class="underline hover:text-stone-700">
+                {p.alt}
+              </a>
+              {' · '}
+              {p.author} ·{' '}
+              <a href={p.licenseUrl} target="_blank" rel="noopener noreferrer license" class="underline hover:text-stone-700">
+                {p.license}
+              </a>
+              , vía Wikimedia Commons
+            </li>
+          ))}
+        </ul>
+      </details>
+    )
+  }
+</div>
+
+<style>
+  .city-card {
+    position: relative;
+    display: block;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    background: var(--color-brand-800);
+    isolation: isolate;
+  }
+  .city-card:focus-visible {
+    outline: 3px solid var(--color-brand-600);
+    outline-offset: 3px;
+  }
+  .city-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .city-card:hover .city-card__img {
+    transform: scale(1.05);
+  }
+  /* Degradado inferior: garantiza contraste del texto sobre cualquier foto. */
+  .city-card__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.25) 45%, rgb(0 0 0 / 0.05));
+  }
+  /* Portada ilustrada para ciudades sin foto: curvas de nivel en colores de marca. */
+  .city-card__fallback {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-brand-700);
+    background-image:
+      radial-gradient(circle at 85% 15%, rgb(19 166 50 / 0.55), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240' fill='none' stroke='white' stroke-opacity='.14' stroke-width='1.5'%3E%3Cpath d='M-20 60c40-30 80 30 120 0s80-30 160 0'/%3E%3Cpath d='M-20 100c40-30 80 30 120 0s80-30 160 0'/%3E%3Cpath d='M-20 140c40-30 80 30 120 0s80-30 160 0'/%3E%3Cpath d='M-20 180c40-30 80 30 120 0s80-30 160 0'/%3E%3Cpath d='M-20 220c40-30 80 30 120 0s80-30 160 0'/%3E%3Cpath d='M-20 20c40-30 80 30 120 0s80-30 160 0'/%3E%3C/svg%3E");
+    transition: transform 0.5s ease;
+  }
+  .city-card:hover .city-card__fallback {
+    transform: scale(1.05);
+  }
+</style>
