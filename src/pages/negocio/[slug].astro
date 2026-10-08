@@ -8,6 +8,7 @@ import PlanBadge from '../../components/PlanBadge.astro';
 import ReviewForm from '../../components/ReviewForm.astro';
 import { getBusiness } from '../../lib/api';
 import { renderDescription } from '../../lib/markdown';
+import { whatsappHref } from '../../lib/whatsapp';
 
 const { slug } = Astro.params;
 const business = await getBusiness(slug!);
@@ -35,7 +36,7 @@ const mapSrc = business.address
 const mapsLink = business.address
   ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`
   : null;
-const waText = encodeURIComponent(`Hola, vi su negocio "${business.name}" en UbicaNegocios y me interesa más información.`);
+const waText = `Hola, vi su negocio "${business.name}" en UbicaNegocios y me interesa más información.`;
 const phones = [
   { value: business.phone, isWhatsapp: business.whatsapp_phone === 'phone' },
   { value: business.phone2, isWhatsapp: business.whatsapp_phone === 'phone2' },
@@ -144,7 +145,7 @@ const phones = [
             {phones.map((p) =>
               p.isWhatsapp ? (
                 <a
-                  href={`https://wa.me/${p.value.replace(/\D/g, '')}?text=${waText}`}
+                  href={whatsappHref(p.value, waText)}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="flex items-center gap-3 text-gray-800 hover:text-emerald-600"
