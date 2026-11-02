@@ -1,4 +1,5 @@
 import type { Business } from './api';
+import { whatsappHref } from './whatsapp';
 
 export interface Phone {
   value: string;
@@ -14,10 +15,6 @@ export function phonesOf(business: Business): Phone[] {
 
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, '')}`;
-}
-
-export function whatsappHref(phone: string, text: string): string {
-  return `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
 }
 
 export function businessWhatsappText(name: string): string {
