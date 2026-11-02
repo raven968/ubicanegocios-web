@@ -1,15 +1,37 @@
 ---
+import { Icon } from 'astro-icon/components';
+
 interface Props {
   rating: number;
   count?: number;
+  /** `compact` = "★ 4.8 (12)" para tarjetas; `full` = cinco estrellas. */
+  variant?: 'compact' | 'full';
+  class?: string;
 }
-const { rating, count } = Astro.props;
+const { rating, count, variant = 'full', class: className } = Astro.props;
 const full = Math.round(rating);
+const value = rating.toFixed(1);
+const label = `${value} de 5 estrellas${count !== undefined ? `, ${count} ${count === 1 ? 'reseña' : 'reseñas'}` : ''}`;
 ---
 
-<span class="inline-flex items-center gap-1 text-sm">
-  <span class="text-amber-500">
-    {'★'.repeat(full)}<span class="text-gray-300">{'★'.repeat(5 - full)}</span>
-  </span>
-  {count !== undefined && <span class="text-gray-500">({count})</span>}
-</span>
+{
+  variant === 'compact' ? (
+    <span class:list={['inline-flex items-center gap-1 text-sm', className]} aria-label={label} role="img">
+      <Icon name="lucide:star" class="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+      <span class="font-semibold text-stone-900">{value}</span>
+      {count !== undefined && <span class="text-stone-500">({count})</span>}
+    </span>
+  ) : (
+    <span class:list={['inline-flex items-center gap-1.5', className]} aria-label={label} role="img">
+      <span class="flex" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <Icon
+            name="lucide:star"
+            class:list={['h-4 w-4', n <= full ? 'fill-amber-400 text-amber-400' : 'fill-stone-200 text-stone-200']}
+          />
+        ))}
+      </span>
+      {count !== undefined && <span class="text-sm text-stone-500">({count})</span>}
+    </span>
+  )
+}

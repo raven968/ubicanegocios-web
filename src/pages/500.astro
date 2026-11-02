@@ -1,0 +1,23 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+---
+
+<!-- Sin llamadas a la API: esta página se muestra justamente cuando la API falla. -->
+<Layout title="Algo salió mal · UbicaNegocios" noindex>
+  <div class="container-page py-16 sm:py-24">
+    <div class="mx-auto max-w-xl text-center">
+      <span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-red-50 text-red-600">
+        <Icon name="lucide:cloud-off" class="h-7 w-7" />
+      </span>
+      <h1 class="mt-5 text-2xl font-bold sm:text-3xl">Algo salió mal</h1>
+      <p class="mt-2 text-stone-600">
+        No pudimos cargar esta página en este momento. Intenta de nuevo en unos segundos.
+      </p>
+      <div class="mt-8 flex flex-wrap justify-center gap-2">
+        <a href={Astro.url.pathname + Astro.url.search} class="btn btn-primary">Reintentar</a>
+        <a href="/" class="btn btn-secondary">Ir al inicio</a>
+      </div>
+    </div>
+  </div>
+</Layout>

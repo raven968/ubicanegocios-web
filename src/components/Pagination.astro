@@ -1,0 +1,77 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  current: number;
+  last: number;
+  /** URL base de la página actual; se conserva su query string y solo cambia `page`. */
+  url: URL;
+}
+const { current, last, url } = Astro.props;
+
+const hrefFor = (page: number) => {
+  const next = new URL(url);
+  if (page <= 1) next.searchParams.delete('page');
+  else next.searchParams.set('page', String(page));
+  return `${next.pathname}${next.search}`;
+};
+
+// Ventana corta de páginas: 1 … 4 5 6 … 14
+const pages: (number | '…')[] = [];
+for (let p = 1; p <= last; p++) {
+  if (p === 1 || p === last || Math.abs(p - current) <= 1) pages.push(p);
+  else if (pages[pages.length - 1] !== '…') pages.push('…');
+}
+---
+
+{
+  last > 1 && (
+    <nav aria-label="Paginación" class="mt-10 flex items-center justify-between gap-2 sm:justify-center">
+      {current > 1 ? (
+        <a href={hrefFor(current - 1)} rel="prev" class="btn btn-secondary">
+          <Icon name="lucide:chevron-left" class="h-4 w-4" />
+          Anterior
+        </a>
+      ) : (
+        <span class="btn btn-secondary pointer-events-none opacity-40" aria-hidden="true">
+          <Icon name="lucide:chevron-left" class="h-4 w-4" />
+          Anterior
+        </span>
+      )}
+
+      <span class="text-sm text-stone-600 sm:hidden">
+        Página {current} de {last}
+      </span>
+
+      <ol class="hidden items-center gap-1 sm:flex">
+        {pages.map((p) =>
+          p === '…' ? (
+            <li class="px-2 text-stone-400">…</li>
+          ) : (
+            <li>
+              <a
+                href={hrefFor(p)}
+                aria-current={p === current ? 'page' : undefined}
+                class="btn btn-ghost btn-icon aria-[current=page]:bg-stone-900 aria-[current=page]:text-white"
+              >
+                {p}
+              </a>
+            </li>
+          ),
+        )}
+      </ol>
+
+      {current < last ? (
+        <a href={hrefFor(current + 1)} rel="next" class="btn btn-secondary">
+          Siguiente
+          <Icon name="lucide:chevron-right" class="h-4 w-4" />
+        </a>
+      ) : (
+        <span class="btn btn-secondary pointer-events-none opacity-40" aria-hidden="true">
+          Siguiente
+          <Icon name="lucide:chevron-right" class="h-4 w-4" />
+        </span>
+      )}
+    </nav>
+  )
+}

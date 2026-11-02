@@ -89,6 +89,28 @@ export interface Business {
   subcategories: Subcategory[];
   zones: Zone[];
   reviews?: Review[];
+  created_at?: string;
+}
+
+export interface PageMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
+export interface BusinessPage {
+  data: Business[];
+  meta: PageMeta;
+}
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    path: string,
+  ) {
+    super(`API ${status} for ${path}`);
+  }
 }
 
 async function get<T>(path: string): Promise<T> {
@@ -96,7 +118,7 @@ async function get<T>(path: string): Promise<T> {
     headers: { Accept: 'application/json' },
   });
   if (!res.ok) {
-    throw new Error(`API ${res.status} for ${path}`);
+    throw new ApiError(res.status, path);
   }
   return res.json();
 }
@@ -117,11 +139,23 @@ export async function getBusinesses(params: Record<string, string> = {}): Promis
   return data;
 }
 
+/** Listado paginado: conserva `meta` para mostrar el total y la paginación. */
+export async function getBusinessesPage(params: Record<string, string> = {}): Promise<BusinessPage> {
+  const qs = new URLSearchParams(params).toString();
+  const { data, meta } = await get<BusinessPage>(`/businesses${qs ? `?${qs}` : ''}`);
+  return { data, meta };
+}
+
+/**
+ * `null` solo cuando el negocio no existe (404). Cualquier otro fallo se propaga:
+ * así una caída de la API no se sirve como "página no encontrada" a los buscadores.
+ */
 export async function getBusiness(slug: string): Promise<Business | null> {
   try {
-    const { data } = await get<{ data: Business }>(`/businesses/${slug}`);
+    const { data } = await get<{ data: Business }>(`/businesses/${encodeURIComponent(slug)}`);
     return data;
-  } catch {
-    return null;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null;
+    throw e;
   }
 }

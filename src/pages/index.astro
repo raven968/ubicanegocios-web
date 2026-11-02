@@ -1,61 +1,212 @@
 ---
+import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
-import BusinessCard from '../components/BusinessCard.astro';
+import BusinessGrid from '../components/BusinessGrid.astro';
 import CategoryIcon from '../components/CategoryIcon.astro';
 import SearchBar from '../components/SearchBar.astro';
-import { getCategories, getBusinesses, getZones } from '../lib/api';
+import SectionHeader from '../components/SectionHeader.astro';
+import OwnerCta from '../components/OwnerCta.astro';
+import CityShowcase from '../components/CityShowcase.astro';
+import { getCategories, getBusinessesPage, getZones, type BusinessPage } from '../lib/api';
+import { citiesWithBusinesses } from '../lib/zones';
+import { REGION_CITIES, SITE_NAME } from '../lib/site';
 
-const [categories, latest, zones] = await Promise.all([
-  getCategories(),
-  getBusinesses().catch(() => []),
+const emptyPage: BusinessPage = { data: [], meta: { current_page: 1, last_page: 1, per_page: 0, total: 0 } };
+
+const [categories, zones, featured, latest] = await Promise.all([
+  getCategories().catch(() => []),
   getZones().catch(() => []),
+  // sort=plan: los planes más altos primero; son los "destacados".
+  getBusinessesPage({ sort: 'plan', per_page: '8' }).catch(() => emptyPage),
+  getBusinessesPage({ per_page: '4' }).catch(() => emptyPage),
 ]);
+
+const activeCategories = categories.filter((c) => c.businesses_count > 0);
+const popular = [...activeCategories].sort((a, b) => b.businesses_count - a.businesses_count).slice(0, 5);
+const cities = citiesWithBusinesses(zones);
+const total = featured.meta.total;
+
+// Evita repetir en "Recién llegados" lo que ya aparece en destacados.
+// `.slice`: la API anterior ignora per_page y siempre manda 12.
+const featuredBusinesses = featured.data.slice(0, 8);
+const featuredIds = new Set(featuredBusinesses.map((b) => b.id));
+const newcomers = latest.data.filter((b) => !featuredIds.has(b.id)).slice(0, 4);
+
+const MOBILE_CATEGORY_LIMIT = 8;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: Astro.site?.href,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${Astro.site?.origin}/buscar?q={search_term_string}`,
+    'query-input': 'required name=search_term_string',
+  },
+};
 ---
 
-<Layout title="UbicaNegocios · Encuentra negocios locales">
-  <section class="mb-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-500 px-6 py-12 text-center text-white">
-    <h1 class="text-3xl font-bold sm:text-4xl">Encuentra negocios cerca de ti</h1>
-    <p class="mx-auto mt-2 max-w-xl text-emerald-50">
-      Explora por categoría o busca lo que necesitas en tu localidad.
-    </p>
-    <div class="mx-auto mt-6 max-w-xl text-left">
-      <SearchBar zones={zones} variant="hero" />
-    </div>
-  </section>
+<Layout headerSearch={false} jsonLd={jsonLd}>
+  <!-- Hero: el buscador es lo primero y lo más grande. -->
+  <section class="relative border-b border-stone-200 bg-white">
+    <div class="container-page pt-10 pb-12 sm:pt-16 sm:pb-16">
+      <!--
+        Móvil: icono → región → título, apilados y centrados.
+        Desde md: la región arriba y el icono en línea con el título (misma altura que sus dos renglones).
+      -->
+      <div
+        class="mx-auto flex max-w-3xl flex-col items-center text-center md:grid md:grid-cols-[auto_auto] md:justify-center md:gap-x-5"
+      >
+        <img
+          src="/brand-icon.webp"
+          alt=""
+          width="240"
+          height="226"
+          fetchpriority="high"
+          class="mb-5 h-16 w-auto drop-shadow-[0_6px_12px_rgba(1,103,210,0.18)] md:col-start-1 md:row-start-2 md:mt-4 md:mb-0 md:h-24"
+        />
+        <p
+          class="inline-flex items-center gap-1.5 rounded-full bg-leaf-50 px-3 py-1 text-xs font-semibold text-leaf-800 md:col-span-2 md:row-start-1 md:justify-self-center"
+        >
+          <Icon name="lucide:map-pin" class="h-3.5 w-3.5" />
+          {REGION_CITIES.slice(0, 3).join(' · ')} y la región
+        </p>
+        <h1
+          class="mt-4 text-[2rem] leading-[1.1] font-bold sm:text-display md:col-start-2 md:row-start-2 md:text-left"
+        >
+          Encuentra negocios y<br class="hidden md:inline" /> servicios <span class="text-brand-600">en tu ciudad</span>
+        </h1>
+      </div>
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="mx-auto mt-3 max-w-xl text-base text-stone-600 sm:text-lg">
+          Busca lo que necesitas y contacta directo por WhatsApp o teléfono. Sin intermediarios.
+        </p>
+      </div>
 
-  <section class="mb-12">
-    <h2 class="mb-4 text-xl font-bold text-gray-900">Categorías</h2>
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div class="mx-auto mt-8 max-w-3xl">
+        <SearchBar zones={zones} variant="hero" />
+
+        {
+          popular.length > 0 && (
+            <div class="scroller mt-4 items-center sm:mx-0 sm:flex-wrap sm:justify-center sm:px-0">
+              <span class="shrink-0 text-sm text-stone-500">Populares:</span>
+              {popular.map((c) => (
+                <a href={`/categoria/${c.slug}`} class="chip min-h-8 text-[0.8125rem]">
+                  {c.name}
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
       {
-        categories.map((cat) => (
-          <a
-            href={`/categoria/${cat.slug}`}
-            class="group relative flex flex-col items-center rounded-xl border border-gray-200 bg-white px-3 py-5 text-center transition hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md"
-          >
-            <span class="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition group-hover:bg-emerald-100">
-              <CategoryIcon name={cat.icon} class="h-6 w-6" />
-            </span>
-            <span class="text-sm font-medium leading-tight text-gray-800">{cat.name}</span>
-            {cat.businesses_count > 0 && (
-              <span class="absolute right-2 top-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                {cat.businesses_count}
-              </span>
-            )}
-          </a>
-        ))
+        total > 0 && (
+          <dl class="mx-auto mt-10 grid max-w-lg grid-cols-3 divide-x divide-stone-200 text-center">
+            <div class="flex flex-col">
+              <dt class="text-xs text-stone-500">Negocios</dt>
+              <dd class="order-first text-xl font-bold text-stone-900 sm:text-2xl">{total}</dd>
+            </div>
+            <div class="flex flex-col">
+              <dt class="text-xs text-stone-500">Categorías</dt>
+              <dd class="order-first text-xl font-bold text-stone-900 sm:text-2xl">{activeCategories.length}</dd>
+            </div>
+            <div class="flex flex-col">
+              <dt class="text-xs text-stone-500">Ciudades</dt>
+              <dd class="order-first text-xl font-bold text-stone-900 sm:text-2xl">{cities.length}</dd>
+            </div>
+          </dl>
+        )
       }
     </div>
+
+    <!-- Indicador sobre la línea divisoria: invita a seguir bajando hacia las ciudades. -->
+    {
+      cities.length > 0 && (
+        <a
+          href="#ciudades"
+          class="group absolute bottom-0 left-1/2 z-10 inline-flex min-h-11 -translate-x-1/2 translate-y-1/2 items-center gap-2 rounded-full border border-stone-200 bg-white py-2 pr-2 pl-4 text-sm font-semibold whitespace-nowrap text-stone-800 shadow-[0_4px_14px_-6px_rgba(0,0,0,.2)] transition hover:border-brand-200 hover:text-brand-700"
+        >
+          O explora por ciudad
+          <span class="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-white transition group-hover:bg-brand-700">
+            <Icon name="lucide:arrow-down" class="h-4 w-4 animate-nudge" />
+          </span>
+        </a>
+      )
+    }
   </section>
 
   {
-    latest.length > 0 && (
-      <section>
-        <h2 class="mb-4 text-xl font-bold text-gray-900">Negocios recientes</h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {latest.slice(0, 6).map((b) => (
-            <BusinessCard business={b} />
+    cities.length > 0 && (
+      <section id="ciudades" class="container-page mt-16" aria-labelledby="cities-title">
+        <SectionHeader
+          id="cities-title"
+          title="Explora por ciudad"
+          subtitle="Negocios de toda la región, ciudad por ciudad."
+        />
+        <CityShowcase cities={cities} />
+      </section>
+    )
+  }
+
+  {
+    featuredBusinesses.length > 0 && (
+      <section class="container-page mt-16" aria-labelledby="featured-title">
+        <SectionHeader
+          id="featured-title"
+          title="Negocios destacados"
+          subtitle="Negocios de la región que puedes contactar hoy mismo."
+          href="/buscar"
+          linkLabel="Ver todos"
+        />
+        <BusinessGrid businesses={featuredBusinesses} columns={4} />
+      </section>
+    )
+  }
+
+  {
+    activeCategories.length > 0 && (
+      <section class="container-page mt-16" aria-labelledby="cat-title">
+        <SectionHeader id="cat-title" title="Explora por categoría" href="/categorias" linkLabel="Ver todas" />
+        <ul class="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+          {activeCategories.map((cat, i) => (
+            <li class:list={[i >= MOBILE_CATEGORY_LIMIT && 'hidden md:block']}>
+              <a
+                href={`/categoria/${cat.slug}`}
+                class="group flex h-full min-h-16 items-center gap-3 rounded-2xl border border-stone-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/50"
+              >
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-100">
+                  <CategoryIcon name={cat.icon} class="h-5 w-5" />
+                </span>
+                <span class="min-w-0">
+                  <span class="line-clamp-2 text-sm leading-tight font-semibold text-stone-900">{cat.name}</span>
+                  <span class="mt-0.5 block text-xs text-stone-500">
+                    {cat.businesses_count} {cat.businesses_count === 1 ? 'negocio' : 'negocios'}
+                  </span>
+                </span>
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
+        {activeCategories.length > MOBILE_CATEGORY_LIMIT && (
+          <a href="/categorias" class="btn btn-secondary mt-3 w-full md:hidden">
+            Ver las {activeCategories.length} categorías
+          </a>
+        )}
+      </section>
+    )
+  }
+
+  <div class="container-page mt-16">
+    <OwnerCta />
+  </div>
+
+  {
+    newcomers.length > 0 && (
+      <section class="container-page mt-16" aria-labelledby="new-title">
+        <SectionHeader id="new-title" title="Recién llegados" subtitle="Los negocios más nuevos en el directorio." />
+        <BusinessGrid businesses={newcomers} columns={4} />
       </section>
     )
   }

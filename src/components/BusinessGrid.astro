@@ -1,0 +1,28 @@
+---
+import BusinessCard from './BusinessCard.astro';
+import type { Business } from '../lib/api';
+
+interface Props {
+  businesses: Business[];
+  /** Cuántas tarjetas cargan su imagen de inmediato (las que suelen verse sin hacer scroll). */
+  eagerCount?: number;
+  headingLevel?: 'h2' | 'h3';
+  columns?: 3 | 4;
+}
+const { businesses, eagerCount = 0, headingLevel = 'h3', columns = 3 } = Astro.props;
+---
+
+<ul
+  class:list={[
+    'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5',
+    columns === 4 ? 'lg:grid-cols-3 xl:grid-cols-4' : 'lg:grid-cols-3',
+  ]}
+>
+  {
+    businesses.map((b, i) => (
+      <li class="flex *:flex-1">
+        <BusinessCard business={b} eager={i < eagerCount} headingLevel={headingLevel} />
+      </li>
+    ))
+  }
+</ul>

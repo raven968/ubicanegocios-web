@@ -1,0 +1,39 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  title: string;
+  class?: string;
+}
+const { title, class: className } = Astro.props;
+---
+
+<!-- Usa el menú nativo de compartir del teléfono; en escritorio copia el enlace. -->
+<button type="button" data-share={title} class:list={['btn btn-secondary', className]}>
+  <Icon name="lucide:share-2" class="h-4 w-4" />
+  <span data-share-label>Compartir</span>
+</button>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-share]').forEach((btn) => {
+    const label = btn.querySelector('[data-share-label]')!;
+    btn.addEventListener('click', async () => {
+      const url = location.href.split('#')[0];
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: btn.dataset.share, url });
+        } catch {
+          /* la persona canceló */
+        }
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        label.textContent = 'Enlace copiado';
+        setTimeout(() => (label.textContent = 'Compartir'), 2000);
+      } catch {
+        label.textContent = 'No se pudo copiar';
+      }
+    });
+  });
+</script>

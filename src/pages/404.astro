@@ -1,0 +1,30 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+import SearchBar from '../components/SearchBar.astro';
+import { getZones } from '../lib/api';
+
+Astro.response.status = 404;
+const zones = await getZones().catch(() => []);
+---
+
+<Layout title="Página no encontrada · UbicaNegocios" noindex headerSearch={false}>
+  <div class="container-page py-16 sm:py-24">
+    <div class="mx-auto max-w-2xl text-center">
+      <span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-brand-700">
+        <Icon name="lucide:map-pin-off" class="h-7 w-7" />
+      </span>
+      <h1 class="mt-5 text-2xl font-bold sm:text-3xl">No encontramos esta página</h1>
+      <p class="mt-2 text-stone-600">
+        Puede que el negocio ya no esté publicado o que el enlace tenga un error. Prueba a buscarlo:
+      </p>
+      <div class="mt-8 text-left">
+        <SearchBar zones={zones} autofocus />
+      </div>
+      <div class="mt-6 flex flex-wrap justify-center gap-2">
+        <a href="/" class="btn btn-secondary">Ir al inicio</a>
+        <a href="/categorias" class="btn btn-secondary">Ver categorías</a>
+      </div>
+    </div>
+  </div>
+</Layout>

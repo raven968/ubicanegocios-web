@@ -1,0 +1,66 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Chip {
+  href: string;
+  label: string;
+  current?: boolean;
+  count?: number;
+}
+interface Props {
+  label: string;
+  chips: Chip[];
+}
+const { label, chips } = Astro.props;
+---
+
+<!--
+  Móvil: una fila con scroll horizontal.
+  Escritorio: una sola fila; "Ver más" despliega el resto para no empujar los resultados.
+-->
+<nav aria-label={label} class="chip-nav flex items-start gap-2" data-chip-nav>
+  <ul
+    class="scroller min-w-0 flex-1 md:mx-0 md:max-h-9 md:flex-wrap md:overflow-hidden md:px-0 md:in-data-expanded:max-h-none"
+    data-chip-list
+  >
+    {
+      chips.map((c) => (
+        <li class="snap-start">
+          <a href={c.href} class="chip" aria-current={c.current ? 'page' : undefined}>
+            {c.label}
+            {c.count !== undefined && <span class="text-xs opacity-60">{c.count}</span>}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <button type="button" class="chip hidden shrink-0 text-brand-700" data-chip-more aria-expanded="false">
+    <span data-more-label>Ver más</span>
+    <Icon name="lucide:chevron-down" class="h-4 w-4 transition in-data-expanded:rotate-180" />
+  </button>
+</nav>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-chip-nav]').forEach((nav) => {
+    const list = nav.querySelector<HTMLElement>('[data-chip-list]')!;
+    const more = nav.querySelector<HTMLButtonElement>('[data-chip-more]')!;
+    const label = more.querySelector('[data-more-label]')!;
+    const desktop = window.matchMedia('(min-width: 48rem)');
+
+    // El botón solo aparece si en escritorio los chips no caben en una fila.
+    const sync = () => {
+      const overflowing = desktop.matches && list.scrollHeight > list.clientHeight + 4;
+      more.classList.toggle('md:inline-flex', overflowing || 'expanded' in nav.dataset);
+    };
+    more.addEventListener('click', () => {
+      const expanded = !('expanded' in nav.dataset);
+      if (expanded) nav.dataset.expanded = '';
+      else delete nav.dataset.expanded;
+      more.setAttribute('aria-expanded', String(expanded));
+      label.textContent = expanded ? 'Ver menos' : 'Ver más';
+    });
+    sync();
+    desktop.addEventListener('change', sync);
+    window.addEventListener('resize', sync, { passive: true });
+  });
+</script>

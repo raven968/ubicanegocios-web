@@ -1,0 +1,123 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { Business } from '../lib/api';
+import { contactActions, telHref } from '../lib/contact';
+
+interface Props {
+  business: Business;
+}
+const { business } = Astro.props;
+const { phones, whatsapp, call, directions } = contactActions(business);
+
+type Social = { name: string; url: string; icon: string };
+const socials: Social[] = [];
+if (business.facebook) socials.push({ name: 'Facebook', url: business.facebook, icon: 'simple-icons:facebook' });
+if (business.instagram) socials.push({ name: 'Instagram', url: business.instagram, icon: 'simple-icons:instagram' });
+if (business.tiktok) socials.push({ name: 'TikTok', url: business.tiktok, icon: 'simple-icons:tiktok' });
+if (business.pinterest) socials.push({ name: 'Pinterest', url: business.pinterest, icon: 'simple-icons:pinterest' });
+
+const websiteHost = business.website ? business.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') : null;
+const hasDetails = phones.length > 0 || business.email || business.address || business.website;
+---
+
+<section class="card overflow-hidden" aria-labelledby="contact-title">
+  <div class="p-5">
+    <h2 id="contact-title" class="text-base font-semibold">Contacto</h2>
+
+    {
+      (whatsapp || call) && (
+        <div class="mt-4 grid gap-2">
+          {whatsapp && (
+            <a href={whatsapp} target="_blank" rel="noopener noreferrer" class="btn btn-contact btn-lg w-full">
+              <Icon name="simple-icons:whatsapp" class="h-5 w-5" />
+              Enviar WhatsApp
+            </a>
+          )}
+          {call && (
+            <a href={call} class:list={['btn btn-lg w-full', whatsapp ? 'btn-secondary' : 'btn-contact']}>
+              <Icon name="lucide:phone" class="h-5 w-5" />
+              Llamar
+            </a>
+          )}
+        </div>
+      )
+    }
+
+    {
+      hasDetails && (
+        <ul class="mt-5 space-y-3.5 text-sm">
+          {business.address && (
+            <li class="flex gap-3">
+              <Icon name="lucide:map-pin" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-stone-400" />
+              <div class="min-w-0">
+                <p class="text-stone-800">{business.address}</p>
+                {directions && (
+                  <a href={directions} target="_blank" rel="noopener noreferrer" class="link mt-0.5 inline-flex items-center gap-1">
+                    Cómo llegar
+                    <Icon name="lucide:arrow-up-right" class="h-3.5 w-3.5" />
+                  </a>
+                )}
+              </div>
+            </li>
+          )}
+          {phones.map((p) => (
+            <li class="flex items-center gap-3">
+              <Icon
+                name={p.isWhatsapp ? 'simple-icons:whatsapp' : 'lucide:phone'}
+                class:list={['h-[18px] w-[18px] shrink-0', p.isWhatsapp ? 'text-leaf-700' : 'text-stone-400']}
+              />
+              <a href={telHref(p.value)} class="text-stone-800 hover:text-brand-700">
+                {p.value}
+              </a>
+              {p.isWhatsapp && <span class="badge bg-leaf-50 text-leaf-800">WhatsApp</span>}
+            </li>
+          ))}
+          {business.email && (
+            <li class="flex items-center gap-3">
+              <Icon name="lucide:mail" class="h-[18px] w-[18px] shrink-0 text-stone-400" />
+              <a href={`mailto:${business.email}`} class="truncate text-stone-800 hover:text-brand-700">
+                {business.email}
+              </a>
+            </li>
+          )}
+          {business.website && (
+            <li class="flex items-center gap-3">
+              <Icon name="lucide:globe" class="h-[18px] w-[18px] shrink-0 text-stone-400" />
+              <a href={business.website} target="_blank" rel="noopener noreferrer" class="link truncate">
+                {websiteHost}
+              </a>
+            </li>
+          )}
+        </ul>
+      )
+    }
+
+    {
+      !whatsapp && !call && !hasDetails && socials.length === 0 && (
+        <p class="mt-3 text-sm text-stone-600">Este negocio aún no ha publicado sus datos de contacto.</p>
+      )
+    }
+  </div>
+
+  {
+    socials.length > 0 && (
+      <div class="flex items-center justify-between gap-3 border-t border-stone-100 bg-stone-50/60 px-5 py-3">
+        <span class="text-sm text-stone-600">Redes sociales</span>
+        <div class="flex gap-1.5">
+          {socials.map((s) => (
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${s.name} de ${business.name}`}
+              title={s.name}
+              class="grid h-10 w-10 place-items-center rounded-full border border-stone-200 bg-white text-stone-700 transition hover:border-stone-300 hover:text-brand-700"
+            >
+              <Icon name={s.icon} class="h-4 w-4" />
+            </a>
+          ))}
+        </div>
+      </div>
+    )
+  }
+</section>
