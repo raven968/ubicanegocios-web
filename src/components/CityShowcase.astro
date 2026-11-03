@@ -21,8 +21,6 @@ const items = (list: Zone[]) =>
     href: `/buscar?zona=${zone.slug}`,
     count: `${zone.businesses_count} ${zone.businesses_count === 1 ? 'negocio' : 'negocios'}`,
   }));
-
-const credits = cities.map((z) => cityPhoto(z)).filter((p) => p !== null);
 ---
 
 <!--
@@ -120,31 +118,6 @@ const credits = cities.map((z) => cityPhoto(z)).filter((p) => p !== null);
     )
   }
 
-  {
-    credits.length > 0 && (
-      <details class="text-xs text-stone-500">
-        <summary class="inline-flex cursor-pointer list-none items-center gap-1 hover:text-stone-700">
-          <Icon name="lucide:camera" class="h-3.5 w-3.5" />
-          Créditos de las fotos
-        </summary>
-        <ul class="mt-2 space-y-1">
-          {credits.map((p) => (
-            <li>
-              <a href={p.source} target="_blank" rel="noopener noreferrer" class="underline hover:text-stone-700">
-                {p.alt}
-              </a>
-              {' · '}
-              {p.author} ·{' '}
-              <a href={p.licenseUrl} target="_blank" rel="noopener noreferrer license" class="underline hover:text-stone-700">
-                {p.license}
-              </a>
-              , vía Wikimedia Commons
-            </li>
-          ))}
-        </ul>
-      </details>
-    )
-  }
 </div>
 
 <style>

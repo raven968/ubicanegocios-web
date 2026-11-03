@@ -2,62 +2,25 @@ import type { Zone } from './api';
 import { zoneLabel } from './zones';
 
 /*
- * Fotos de portada de las ciudades (public/ciudades/<clave>-{640,1200}.webp).
- * Son de Wikimedia Commons con licencia libre: el crédito es obligatorio y se
- * muestra junto a la sección. Una ciudad sin foto usa la portada ilustrada.
+ * Fotos de portada de las ciudades (public/ciudades/<clave>-{640,1200}.webp),
+ * generadas desde utils/<clave>.jpeg. Una ciudad sin foto usa la portada ilustrada.
  */
 export interface CityPhoto {
   alt: string;
-  author: string;
-  license: string;
-  licenseUrl: string;
-  source: string;
-  /** object-position para que el recorte conserve el punto de interés. */
+  /** object-position para que el recorte conserve las letras monumentales. */
   position?: string;
 }
 
 export const CITY_PHOTOS: Record<string, CityPhoto> = {
-  delicias: {
-    alt: 'Reloj Público en el centro de Delicias',
-    author: 'Lobo2y',
-    license: 'CC BY-SA 3.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
-    source: 'https://commons.wikimedia.org/wiki/File:Reloj_Publico_Dia.jpg',
-    position: '50% 30%',
-  },
-  meoqui: {
-    alt: 'Templo principal de Meoqui al atardecer',
-    author: 'Katmarova',
-    license: 'CC BY-SA 4.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
-    source: 'https://commons.wikimedia.org/wiki/File:Fe_en_cuatro_paredes.jpg',
-    position: '50% 45%',
-  },
-  camargo: {
-    alt: 'Letras monumentales de Camargo en la plaza',
-    author: 'CrySwiftly',
-    license: 'CC BY-SA 4.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
-    source: 'https://commons.wikimedia.org/wiki/File:Letras_de_Santa_Rosal%C3%ADa_de_Camargo.jpg',
-    position: '50% 70%',
-  },
-  chihuahua: {
-    alt: 'Catedral de Chihuahua desde la Plaza de Armas',
-    author: 'Comisión Mexicana de Filmaciones',
-    license: 'CC BY-SA 2.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/',
-    source:
-      'https://commons.wikimedia.org/wiki/File:Catedral_de_Chihuahua,_Plaza_de_las_Armas,_Chihuahua-_Chihuahua_cathedral_(24256572941).jpg',
-    position: '50% 40%',
-  },
-  parral: {
-    alt: 'Catedral de Guadalupe en el centro de Parral',
-    author: 'Pedro Eduardo Romero Vázquez',
-    license: 'CC BY-SA 3.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
-    source: 'https://commons.wikimedia.org/wiki/File:Templo_de_Guadalupe_Catedral_Centro_Parral.jpg',
-    position: '50% 35%',
-  },
+  chihuahua: { alt: 'Letras monumentales de Chihuahua frente a un mural en relieve', position: '50% 65%' },
+  delicias: { alt: 'Letras monumentales de Delicias frente al Reloj Público', position: '50% 70%' },
+  meoqui: { alt: 'Letras monumentales de Meoqui con el lema #MeoquiEnamora', position: '50% 55%' },
+  camargo: { alt: 'Letras monumentales de Camargo, cuna de artistas, en la plaza', position: '50% 60%' },
+  parral: { alt: 'Letras monumentales de Parral frente a un edificio histórico', position: '50% 65%' },
+  jimenez: { alt: 'Letras monumentales de Jiménez, la puerta de oro del estado grande', position: '50% 55%' },
+  saucillo: { alt: 'Letras monumentales de Saucillo con una estatua de bronce', position: '50% 65%' },
+  julimes: { alt: 'Letras monumentales de Julimes en la plaza', position: '50% 65%' },
+  rosales: { alt: 'Letras monumentales de Rosales junto a la presa', position: '50% 45%' },
 };
 
 /** "Jiménez" / "JIMENEZ" → "jimenez" */
